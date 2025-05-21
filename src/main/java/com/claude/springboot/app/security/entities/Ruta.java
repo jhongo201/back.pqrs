@@ -2,11 +2,16 @@ package com.claude.springboot.app.security.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
-@Data
+@Getter
+@Setter
+@ToString(exclude = "modulo")
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -35,4 +40,18 @@ public class Ruta {
     
     @Column(name = "fecha_creacion")
     private LocalDateTime fechaCreacion;
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Ruta ruta1 = (Ruta) o;
+        return Objects.equals(idRuta, ruta1.idRuta) && 
+               Objects.equals(ruta, ruta1.ruta);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(idRuta, ruta);
+    }
 }

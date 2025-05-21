@@ -2,12 +2,17 @@ package com.claude.springboot.app.security.entities;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
+@ToString(exclude = "rutas")
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -33,4 +38,18 @@ public class Modulo {
     // Relación bidireccional con Ruta
     @OneToMany(mappedBy = "modulo", fetch = FetchType.LAZY)
     private Set<Ruta> rutas;
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Modulo modulo = (Modulo) o;
+        return Objects.equals(idModulo, modulo.idModulo) && 
+               Objects.equals(nombre, modulo.nombre);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(idModulo, nombre);
+    }
 }

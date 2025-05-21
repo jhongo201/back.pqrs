@@ -55,6 +55,14 @@ public interface PermisoRolRepository extends JpaRepository<PermisoRol, Long> {
         * @return Lista de permisos donde puede_leer es true
         */
        List<PermisoRol> findByRolAndPuedeLeerTrue(Rol rol);
+       
+       /**
+        * Encuentra todos los permisos de un rol donde puede_leer es true con carga temprana de relaciones
+        * @param rolId El ID del rol para el que se buscan los permisos
+        * @return Lista de permisos donde puede_leer es true con relaciones cargadas
+        */
+       @Query("SELECT p FROM PermisoRol p JOIN FETCH p.ruta r JOIN FETCH r.modulo m WHERE p.rol.idRol = :rolId AND p.puedeLeer = true AND p.estado = true AND r.estado = true AND m.estado = true")
+       List<PermisoRol> findPermisosWithModulosAndRutasByRolId(@Param("rolId") Long rolId);
 
        @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END " +
                      "FROM PermisoRol p " +
