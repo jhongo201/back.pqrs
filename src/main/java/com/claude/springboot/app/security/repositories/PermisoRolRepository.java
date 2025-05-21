@@ -48,6 +48,13 @@ public interface PermisoRolRepository extends JpaRepository<PermisoRol, Long> {
                      "AND p.estado = true")
        boolean tienePermisoLecturaPorNombre(@Param("rolNombre") String rolNombre,
                      @Param("rutaPath") String rutaPath);
+       
+       /**
+        * Encuentra todos los permisos de un rol donde puede_leer es true
+        * @param rol El rol para el que se buscan los permisos
+        * @return Lista de permisos donde puede_leer es true
+        */
+       List<PermisoRol> findByRolAndPuedeLeerTrue(Rol rol);
 
        @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END " +
                      "FROM PermisoRol p " +
