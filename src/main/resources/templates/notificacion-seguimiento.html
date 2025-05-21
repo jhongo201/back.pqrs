@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Actualización de PQRS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3b82f6;
+        }
+        .content {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #e5e7eb;
+        }
+        .info-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .info-item {
+            margin-bottom: 10px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #4b5563;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: #ffffff !important;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .footer {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+            color: #6b7280;
+            text-align: center;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            background-color: #e2e8f0;
+        }
+        .estado-pendiente { background-color: #fef3c7; color: #92400e; }
+        .estado-proceso { background-color: #e0f2fe; color: #075985; }
+        .estado-resuelto { background-color: #dcfce7; color: #166534; }
+        .estado-cerrado { background-color: #f1f5f9; color: #475569; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Actualización de su PQRS</h2>
+    </div>
+    
+    <div class="content">
+        <p>Estimado(a) <strong th:text="${nombreUsuario}">usuario</strong>,</p>
+        
+        <p>Se ha registrado una actualización en su solicitud:</p>
+        
+        <div class="info-box">
+            <div class="info-item">
+                <span class="info-label">Número de Radicado:</span>
+                <strong th:text="${numeroRadicado}">RAD123</strong>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">Tipo de Actualización:</span>
+                <span th:text="${tipoActualizacion}">Seguimiento</span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">Estado Actual:</span>
+                <span class="status-badge" th:classappend="'estado-' + ${#strings.toLowerCase(estadoPqrs)}"
+                      th:text="${estadoPqrs}">En Proceso</span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">Fecha de Actualización:</span>
+                <span th:text="${fechaSeguimiento}">01/01/2024</span>
+            </div>
+        </div>
+
+        <p>Para ver los detalles completos de la actualización, por favor haga clic en el siguiente botón:</p>
+        
+        <a th:href="${urlConsulta}" class="button">Ver Detalles de la Actualización</a>
+        
+        <p style="font-size: 0.875rem; color: #6b7280;">Si el botón no funciona, puede copiar y pegar el siguiente enlace en su navegador:</p>
+        <p style="word-break: break-all; font-size: 0.875rem; color: #6b7280;" th:text="${urlConsulta}">http://ejemplo.com</p>
+    </div>
+    
+    <div class="footer">
+        <p>Este es un mensaje automático, por favor no responda a este correo.</p>
+        <p>Sistema de Gestión de PQRS</p>
+    </div>
+</body>
+</html>

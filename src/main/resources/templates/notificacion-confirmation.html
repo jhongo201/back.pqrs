@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmación de Radicación PQRS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3b82f6;
+        }
+        .content {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #e5e7eb;
+        }
+        .info-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .info-item {
+            margin-bottom: 10px;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #4b5563;
+            min-width: 120px;
+            display: inline-block;
+        }
+        .button {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: #ffffff !important;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .footer {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+            color: #6b7280;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Confirmación de Radicación PQRS</h2>
+    </div>
+    
+    <div class="content">
+        <p>Estimado(a) <strong th:text="${nombreUsuario}">usuario</strong>,</p>
+        
+        <p>Su PQRS ha sido registrado exitosamente con los siguientes detalles:</p>
+        
+        <div class="info-box">
+            <div class="info-item">
+                <span class="info-label">N° Radicado:</span>
+                <strong th:text="${numeroRadicado}">RAD123</strong>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">Título:</span>
+                <span th:text="${titulo}">Título de la PQRS</span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">Tema:</span>
+                <span th:text="${tema}">Tema de la PQRS</span>
+            </div>
+            
+            <div class="info-item">
+                <span class="info-label">Prioridad:</span>
+                <span th:text="${prioridad}">ALTA</span>
+            </div>
+        </div>
+
+        <p>Para realizar seguimiento a su solicitud, puede acceder mediante el siguiente enlace:</p>
+        
+        <a th:href="${urlConsulta}" class="button">Consultar PQRS</a>
+        
+        <p style="font-size: 0.875rem; color: #6b7280;">Si el botón no funciona, puede copiar y pegar el siguiente enlace en su navegador:</p>
+        <p style="word-break: break-all; font-size: 0.875rem; color: #6b7280;" th:text="${urlConsulta}">http://ejemplo.com</p>
+        
+        <p>Le mantendremos informado sobre el avance de su solicitud.</p>
+    </div>
+    
+    <div class="footer">
+        <p>Este es un mensaje automático, por favor no responda a este correo.</p>
+        <p>Sistema de Gestión de PQRS</p>
+    </div>
+</body>
+</html>

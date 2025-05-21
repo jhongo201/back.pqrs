@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Activación de Cuenta</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 2rem 1rem;
+            background-color: #f0f9ff;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            color: #0369a1;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+        .welcome-text {
+            font-size: 1.1rem;
+            color: #374151;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .content {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 2rem;
+        }
+        .activation-button {
+            display: inline-block;
+            background-color: #0284c7;
+            color: #ffffff !important;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            margin: 1rem 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .activation-button:hover {
+            background-color: #0369a1;
+        }
+        .code-container {
+            background-color: #f8fafc;
+            border: 2px dashed #e2e8f0;
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+        .code {
+            font-family: monospace;
+            font-size: 2rem;
+            color: #0369a1;
+            letter-spacing: 0.25rem;
+            font-weight: bold;
+        }
+        .expiry-text {
+            font-size: 0.9rem;
+            color: #6b7280;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        .footer {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        .info-text {
+            background-color: #fff7ed;
+            border-left: 4px solid #fb923c;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            color: #7c2d12;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>¡Bienvenido!</h1>
+    </div>
+    
+    <div class="welcome-text">
+        Hola <strong th:text="${nombre}">Usuario</strong>, gracias por registrarte en nuestro sistema.
+    </div>
+    
+    <div class="content">
+        <p>Para empezar a usar tu cuenta, necesitamos verificar tu dirección de correo electrónico.</p>
+        
+        <a th:href="${urlActivacion}" class="activation-button">
+            Activar mi cuenta
+        </a>
+
+        <div class="info-text">
+            Si el botón no funciona, puedes usar el siguiente código de activación:
+        </div>
+        
+        <div class="code-container">
+            <div class="code" th:text="${codigo}">123456</div>
+            <p>Ingresa este código en la página de activación</p>
+        </div>
+        
+        <div class="expiry-text">
+            ⚠️ Este código expirará en 24 horas por razones de seguridad.
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Este es un mensaje automático, por favor no respondas a este correo.</p>
+        <p>Si no solicitaste esta cuenta, puedes ignorar este mensaje.</p>
+    </div>
+</body>
+</html>

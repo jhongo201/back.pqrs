@@ -1,0 +1,13 @@
+package com.claude.springboot.app.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class AreaResponseDTO {
+    private Long idArea;
+    private String nombre;
+}
