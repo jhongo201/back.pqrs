@@ -1,6 +1,10 @@
 package com.claude.springboot.app.security.service;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -61,24 +65,56 @@ public class PermisoRolServiceImpl implements PermisoRolService {
             Rol rol = rolRepository.findById(asignacionDTO.getIdRol())
                     .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
 
-            // Desactivar permisos anteriores
-            permisoRolRepository.desactivarPermisosPorRol(rol.getIdRol());
+            // Obtener todos los permisos actuales del rol
+            List<PermisoRol> permisosActuales = permisoRolRepository.findByRolIdRol(rol.getIdRol());
+            
+            // Crear un mapa para acceso rápido por ID de ruta
+            Map<Long, PermisoRol> mapaPermisosExistentes = new HashMap<>();
+            for (PermisoRol p : permisosActuales) {
+                mapaPermisosExistentes.put(p.getRuta().getIdRuta(), p);
+            }
+            
+            // Conjunto para rastrear las rutas que se están actualizando
+            Set<Long> rutasActualizadas = new HashSet<>();
 
-            // Crear nuevos permisos
+            // Actualizar o crear permisos
             for (PermisoRutaDTO permisoDTO : asignacionDTO.getPermisos()) {
                 Ruta ruta = rutaRepository.findById(permisoDTO.getIdRuta())
                         .orElseThrow(() -> new RuntimeException("Ruta no encontrada"));
-
-                PermisoRol permiso = new PermisoRol();
-                permiso.setRol(rol);
-                permiso.setRuta(ruta);
-                permiso.setPuedeLeer(permisoDTO.isPuedeLeer());
-                permiso.setPuedeEscribir(permisoDTO.isPuedeEscribir());
-                permiso.setPuedeActualizar(permisoDTO.isPuedeActualizar());
-                permiso.setPuedeEliminar(permisoDTO.isPuedeEliminar());
-                permiso.setEstado(true);
-
+                
+                PermisoRol permiso;
+                
+                // Verificar si ya existe un permiso para esta ruta
+                if (mapaPermisosExistentes.containsKey(ruta.getIdRuta())) {
+                    // Actualizar permiso existente
+                    permiso = mapaPermisosExistentes.get(ruta.getIdRuta());
+                    permiso.setPuedeLeer(permisoDTO.isPuedeLeer());
+                    permiso.setPuedeEscribir(permisoDTO.isPuedeEscribir());
+                    permiso.setPuedeActualizar(permisoDTO.isPuedeActualizar());
+                    permiso.setPuedeEliminar(permisoDTO.isPuedeEliminar());
+                    permiso.setEstado(true); // Asegurarse de que esté activo
+                } else {
+                    // Crear nuevo permiso
+                    permiso = new PermisoRol();
+                    permiso.setRol(rol);
+                    permiso.setRuta(ruta);
+                    permiso.setPuedeLeer(permisoDTO.isPuedeLeer());
+                    permiso.setPuedeEscribir(permisoDTO.isPuedeEscribir());
+                    permiso.setPuedeActualizar(permisoDTO.isPuedeActualizar());
+                    permiso.setPuedeEliminar(permisoDTO.isPuedeEliminar());
+                    permiso.setEstado(true);
+                }
+                
                 permisoRolRepository.save(permiso);
+                rutasActualizadas.add(ruta.getIdRuta());
+            }
+            
+            // Desactivar permisos que no están en la lista de actualización
+            for (PermisoRol permiso : permisosActuales) {
+                if (!rutasActualizadas.contains(permiso.getRuta().getIdRuta())) {
+                    permiso.setEstado(false);
+                    permisoRolRepository.save(permiso);
+                }
             }
         } catch (Exception e) {
             log.error("Error al asignar permisos al rol: {}", asignacionDTO.getIdRol(), e);

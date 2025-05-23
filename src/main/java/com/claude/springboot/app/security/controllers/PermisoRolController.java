@@ -57,6 +57,19 @@ public class PermisoRolController {
                     .body(Collections.singletonMap("error", e.getMessage()));
         }
     }
+    
+    @PutMapping("/asignar")
+    @PermitirActualizar
+    public ResponseEntity<?> actualizarPermisos(@Valid @RequestBody AsignacionPermisosDTO asignacionDTO) {
+        try {
+            // Utiliza el mismo método del servicio, ya que la lógica es la misma
+            permisoRolService.asignarPermisosARol(asignacionDTO);
+            return ResponseEntity.ok(Collections.singletonMap("mensaje", "Permisos actualizados correctamente"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Collections.singletonMap("error", e.getMessage()));
+        }
+    }
 
     @PutMapping("/{idPermiso}")
     @PermitirActualizar
