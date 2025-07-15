@@ -43,7 +43,11 @@ public class PermisoEvaluator {
                     rolNombre, ruta, tipoPermiso);
             
             boolean resultado = switch (tipoPermiso) {
-                case LECTURA -> permisoRolRepository.tienePermisoLecturaPorNombre(rolNombre, ruta);
+                case LECTURA -> {
+                    boolean permiso = permisoRolRepository.tienePermisoLecturaPorNombre(rolNombre, ruta);
+                    log.debug("Consulta de permiso de lectura - Rol: {}, Ruta: {}, Resultado: {}", rolNombre, ruta, permiso);
+                    yield permiso;
+                }
                 case ESCRITURA -> permisoRolRepository.tienePermisoEscrituraPorNombre(rolNombre, ruta);
                 case ACTUALIZAR -> permisoRolRepository.tienePermisoActualizarPorNombre(rolNombre, ruta);
                 case ELIMINAR -> permisoRolRepository.tienePermisoEliminarPorNombre(rolNombre, ruta);
@@ -54,6 +58,12 @@ public class PermisoEvaluator {
             };
             
             log.info("Resultado de verificación de permiso: {}", resultado);
+            
+            // Debug adicional si el resultado es false
+            if (!resultado && tipoPermiso == TipoPermiso.LECTURA) {
+                log.debug("PERMISO DENEGADO - Verificando datos en BD para debug...");
+                log.debug("Rol buscado: '{}', Ruta buscada: '{}'", rolNombre, ruta);
+            }
             return resultado;
             
         } catch (Exception e) {

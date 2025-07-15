@@ -37,6 +37,7 @@ public class PermisoRolServiceImpl implements PermisoRolService {
     public List<PermisoRolDTO> listarPermisosPorRol(Long idRol) {
         try {
             return permisoRolRepository.findByRolIdRol(idRol).stream()
+                    .filter(permiso -> permiso.getRuta() != null) // Filtrar registros con ruta null
                     .map(this::convertirADTO)
                     .collect(Collectors.toList());
         } catch (Exception e) {
@@ -160,8 +161,20 @@ public class PermisoRolServiceImpl implements PermisoRolService {
     private PermisoRolDTO convertirADTO(PermisoRol permiso) {
         PermisoRolDTO dto = new PermisoRolDTO();
         dto.setIdPermiso(permiso.getIdPermiso());
-        dto.setIdRol(permiso.getRol().getIdRol());
-        dto.setIdRuta(permiso.getRuta().getIdRuta());
+        
+        // Validación para evitar NullPointerException
+        if (permiso.getRol() != null) {
+            dto.setIdRol(permiso.getRol().getIdRol());
+        } else {
+            log.warn("PermisoRol con ID {} tiene rol null", permiso.getIdPermiso());
+        }
+        
+        if (permiso.getRuta() != null) {
+            dto.setIdRuta(permiso.getRuta().getIdRuta());
+        } else {
+            log.warn("PermisoRol con ID {} tiene ruta null", permiso.getIdPermiso());
+        }
+        
         dto.setPuedeLeer(permiso.isPuedeLeer());
         dto.setPuedeEscribir(permiso.isPuedeEscribir());
         dto.setPuedeActualizar(permiso.isPuedeActualizar());

@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/permisos-rol")
+@RequestMapping("/api/permisorols")
 @RequiredArgsConstructor
 @Slf4j
 public class PermisoRolController {
@@ -37,6 +37,18 @@ public class PermisoRolController {
     @GetMapping("/rol/{idRol}")
     @PermitirLectura
     public ResponseEntity<?> listarPermisosPorRol(@PathVariable Long idRol) {
+        return obtenerPermisosPorRol(idRol);
+    }
+    
+    // Mapeo temporal para compatibilidad con la ruta antigua
+    @GetMapping("/api/permisos-rol/rol/{idRol}")
+    @PermitirLectura
+    public ResponseEntity<?> listarPermisosPorRolCompatibilidad(@PathVariable Long idRol) {
+        log.warn("Usando ruta deprecated /api/permisos-rol/rol/{} - usar /api/permisorols/rol/{} en su lugar", idRol, idRol);
+        return obtenerPermisosPorRol(idRol);
+    }
+    
+    private ResponseEntity<?> obtenerPermisosPorRol(Long idRol) {
         try {
             List<PermisoRolDTO> permisos = permisoRolService.listarPermisosPorRol(idRol);
             return ResponseEntity.ok(permisos);

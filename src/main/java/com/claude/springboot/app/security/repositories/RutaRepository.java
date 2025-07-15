@@ -1,6 +1,7 @@
 package com.claude.springboot.app.security.repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -12,6 +13,9 @@ import com.claude.springboot.app.security.entities.Ruta;
 @Repository
 public interface RutaRepository extends JpaRepository<Ruta, Long> {
     List<Ruta> findByEstadoTrueAndEsPublicaTrue();
+    
+    // Método para buscar ruta por path
+    Optional<Ruta> findByRuta(String ruta);
     
     // Método existente que usas para permisos
     @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END " +
