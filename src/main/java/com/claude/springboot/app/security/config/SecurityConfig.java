@@ -49,7 +49,12 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/api/auth/**").permitAll();
+                    // Rutas públicas de PQRS
+                    auth.requestMatchers("/api/pqrs/publico").permitAll();
                     auth.requestMatchers("/api/pqrs/publico/**").permitAll();
+                    auth.requestMatchers("/api/pqrs/radicado/**").permitAll();
+                    auth.requestMatchers("/api/pqrs/consulta/**").permitAll();
+                    auth.requestMatchers("/api/pqrs/respuesta/**").permitAll();
                     auth.requestMatchers("/api/test/password/**").permitAll();
                     auth.requestMatchers("/error").permitAll();
                     auth.requestMatchers("/api/docs/**").authenticated(); // Agregamos esta línea
