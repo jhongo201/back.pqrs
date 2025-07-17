@@ -77,7 +77,6 @@ public class Pqrs {
     @Column(name = "token_consulta", length = 100, unique = true)
     private String tokenConsulta;
 
-
     @PrePersist
     protected void onCreate() {
         fechaCreacion = LocalDateTime.now();

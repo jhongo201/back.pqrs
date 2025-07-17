@@ -2,7 +2,7 @@ package com.claude.springboot.app.services;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
+
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.Arrays;
@@ -24,7 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.claude.springboot.app.dto.AreaResponseDTO;
 import com.claude.springboot.app.dto.AsignarPqrsDTO;
 import com.claude.springboot.app.dto.CrearPqrsDTO;
-import com.claude.springboot.app.dto.CrearPqrsUsuarioRegistradoDTO;
+
 import com.claude.springboot.app.dto.CrearSeguimientoDTO;
 import com.claude.springboot.app.dto.PqrsResponseDTO;
 import com.claude.springboot.app.dto.RespuestaSolicitanteDTO;
@@ -36,6 +36,7 @@ import com.claude.springboot.app.entities.Pqrs;
 import com.claude.springboot.app.entities.SeguimientoPqrs;
 import com.claude.springboot.app.entities.SeguimientoPqrs.TipoSeguimiento;
 import com.claude.springboot.app.entities.TemasPqrs;
+import com.claude.springboot.app.utils.Base64FileUtils;
 import com.claude.springboot.app.exceptions.PqrsActivoException;
 import com.claude.springboot.app.repositories.HistorialAsignacionRepository;
 import com.claude.springboot.app.repositories.PqrsRepository;
@@ -70,7 +71,7 @@ public class PqrsServiceImpl implements PqrsService {
 
     @Override
     @Transactional
-    public PqrsResponseDTO crearPqrsPublico(CrearPqrsDTO dto) {
+    public PqrsResponseDTO crearPqrsPublico(CrearPqrsDTO dto, MultipartFile archivo) {
         TemasPqrs tema = temasPqrsRepository.findById(dto.getIdTema())
                 .orElseThrow(() -> new RuntimeException("Tema no encontrado"));
 
@@ -85,6 +86,8 @@ public class PqrsServiceImpl implements PqrsService {
         pqrs.setDescripcion(dto.getDescripcion());
         pqrs.setPrioridad(dto.getPrioridad());
 
+
+
         // Generar el número de radicado
         pqrs.setNumeroRadicado(radicadoGenerator.generarNumeroRadicado());
 
@@ -95,6 +98,57 @@ public class PqrsServiceImpl implements PqrsService {
         }
 
         pqrs = pqrsRepository.save(pqrs);
+
+        // Manejar archivo adjunto si existe (como seguimiento inicial)
+        log.info("Verificando archivo adjunto: archivo={}, isEmpty={}", 
+                 archivo != null ? archivo.getOriginalFilename() : "null", 
+                 archivo != null ? archivo.isEmpty() : "N/A");
+    
+        MultipartFile archivoParaProcesar = archivo;
+        
+        // Si no hay MultipartFile pero hay string base64, convertirlo
+        if ((archivo == null || archivo.isEmpty()) && 
+            dto.getArchivoAdjunto() != null && !dto.getArchivoAdjunto().trim().isEmpty()) {
+            
+            System.out.println("[DEBUG] Procesando archivo base64 desde JSON");
+            archivoParaProcesar = Base64FileUtils.base64ToMultipartFile(
+                dto.getArchivoAdjunto(), 
+                "archivo_adjunto"
+            );
+            
+            if (archivoParaProcesar != null) {
+                System.out.println("[DEBUG] Archivo convertido - Nombre: " + archivoParaProcesar.getOriginalFilename() + 
+                                 ", Content-Type: " + archivoParaProcesar.getContentType() + 
+                                 ", Tamaño: " + archivoParaProcesar.getSize());
+            }
+        }
+        
+        // Procesar archivo si existe (real o convertido desde base64)
+        if (archivoParaProcesar != null && !archivoParaProcesar.isEmpty()) {
+            System.out.println("[DEBUG] Archivo a procesar: " + archivoParaProcesar.getOriginalFilename() + 
+                             ", tamaño: " + archivoParaProcesar.getSize());
+            
+            try {
+                String filePath = fileStorageService.storeFile(archivoParaProcesar);
+                
+                SeguimientoPqrs seguimiento = new SeguimientoPqrs();
+                seguimiento.setPqrs(pqrs);
+                seguimiento.setUsuario(null); // Usuario anónimo
+                seguimiento.setComentario("Archivo adjunto en la creación del PQRS público");
+                seguimiento.setArchivoAdjunto(filePath);
+                seguimiento.setTipoSeguimiento(TipoSeguimiento.ADJUNTO_INICIAL);
+                seguimiento.setFechaCreacion(LocalDateTime.now());
+                
+                seguimientoRepository.save(seguimiento);
+                System.out.println("[DEBUG] Seguimiento con archivo guardado exitosamente: " + filePath);
+                
+            } catch (Exception e) {
+                System.err.println("[ERROR] Error al procesar archivo: " + e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("[DEBUG] No se recibió archivo adjunto válido");
+        }
 
         // Enviar email al solicitante con el link de consulta
         String linkConsulta = String.format("/pqrs/consulta/%s/%s",

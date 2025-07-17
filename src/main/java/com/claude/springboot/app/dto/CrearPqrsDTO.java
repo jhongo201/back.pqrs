@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
 @Data
 @NoArgsConstructor
@@ -26,4 +28,8 @@ public class CrearPqrsDTO {
     @NotEmpty
     private String descripcion;
     private String prioridad;
+    
+    // Campo para compatibilidad con frontend - acepta en JSON pero no se serializa
+    @JsonProperty(access = Access.WRITE_ONLY)
+    private String archivoAdjunto;
 }

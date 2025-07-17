@@ -1,0 +1,11 @@
+{
+  "idTema": 1,
+  "titulo": "Prueba PQRS con imagen PNG",
+  "descripcion": "Esta es una prueba de PQRS público con imagen PNG adjunta",
+  "prioridad": "MEDIA",
+  "nombreSolicitante": "María García",
+  "emailSolicitante": "maria.garcia@example.com",
+  "telefonoSolicitante": "3009876543",
+  "direccionSolicitante": "Carrera 45 #12-34",
+  "archivoAdjunto": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+}

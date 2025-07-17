@@ -1,0 +1,11 @@
+{
+  "idTema": 1,
+  "titulo": "Prueba PQRS con archivo base64",
+  "descripcion": "Esta es una prueba de PQRS público con archivo adjunto en base64",
+  "prioridad": "MEDIA",
+  "nombreSolicitante": "Juan Pérez",
+  "emailSolicitante": "juan.perez@example.com",
+  "telefonoSolicitante": "3001234567",
+  "direccionSolicitante": "Calle 123 #45-67",
+  "archivoAdjunto": "data:text/plain;base64,SG9sYSBtdW5kbyEgRXN0ZSBlcyB1biBhcmNoaXZvIGRlIHBydWViYSBkZSB0ZXh0by4KQ29udGVuaWRvIGRlIGVqZW1wbG8gcGFyYSB2ZXJpZmljYXIgZWwgZnVuY2lvbmFtaWVudG8gZGVsIHNpc3RlbWEgZGUgYXJjaGl2b3MgYWRqdW50b3Mu"
+}

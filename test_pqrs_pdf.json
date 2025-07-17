@@ -1,0 +1,11 @@
+{
+  "idTema": 1,
+  "titulo": "Prueba PQRS con PDF real",
+  "descripcion": "Esta es una prueba de PQRS público con PDF adjunto",
+  "prioridad": "MEDIA",
+  "nombreSolicitante": "Carlos López",
+  "emailSolicitante": "carlos.lopez@example.com",
+  "telefonoSolicitante": "3001112233",
+  "direccionSolicitante": "Avenida 80 #50-25",
+  "archivoAdjunto": "JVBERi0xLjQKJcOkw7zDtsO8CjIgMCBvYmoKPDwKL0xlbmd0aCAzIDAgUgovRmlsdGVyIC9GbGF0ZURlY29kZQo+PgpzdHJlYW0KeJxLy8wpTVWwUshIzStJTbFSqK4FALvhBRIKZW5kc3RyZWFtCmVuZG9iagoKMyAwIG9iago5CmVuZG9iagoKNSAwIG9iago8PAovVHlwZSAvUGFnZQovUGFyZW50IDQgMCBSCi9NZWRpYUJveCBbMCAwIDYxMiA3OTJdCi9Db250ZW50cyAyIDAgUgovUmVzb3VyY2VzIDw8Ci9Gb250IDw8Ci9GMSA2IDAgUgo+Pgo+Pgo+PgplbmRvYmoKCjYgMCBvYmoKPDwKL1R5cGUgL0ZvbnQKL1N1YnR5cGUgL1R5cGUxCi9CYXNlRm9udCAvSGVsdmV0aWNhCj4+CmVuZG9iagoKNCAwIG9iago8PAovVHlwZSAvUGFnZXMKL0NvdW50IDEKL0tpZHMgWzUgMCBSXQo+PgplbmRvYmoKCjEgMCBvYmoKPDwKL1R5cGUgL0NhdGFsb2cKL1BhZ2VzIDQgMCBSCj4+CmVuZG9iagoKeHJlZgowIDcKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwNTY2IDAwMDAwIG4gCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDE3NCAwMDAwMCBuIAowMDAwMDA0NzggMDAwMDAgbiAKMDAwMDAwMTk1IDAwMDAwIG4gCjAwMDAwMDQxNCAwMDAwMCBuIAp0cmFpbGVyCjw8Ci9TaXplIDcKL1Jvb3QgMSAwIFIKPj4Kc3RhcnR4cmVmCjYxNQolJUVPRgo="
+}

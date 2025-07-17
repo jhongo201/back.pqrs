@@ -1,0 +1,10 @@
+{
+  "nombreSolicitante": "Test User",
+  "emailSolicitante": "test@example.com",
+  "tipoDocumentoSolicitante": "CC",
+  "numeroDocumentoSolicitante": "12345678",
+  "idTema": 1,
+  "titulo": "Test PQRS",
+  "descripcion": "Test description",
+  "archivoAdjunto": "test.pdf"
+}

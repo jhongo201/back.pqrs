@@ -23,7 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.claude.springboot.app.dto.AsignarPqrsDTO;
 import com.claude.springboot.app.dto.CrearPqrsDTO;
-import com.claude.springboot.app.dto.CrearPqrsUsuarioRegistradoDTO;
+
 import com.claude.springboot.app.dto.CrearSeguimientoDTO;
 import com.claude.springboot.app.dto.HistorialAsignacionDTO;
 import com.claude.springboot.app.dto.PqrsResponseDTO;
@@ -32,7 +32,7 @@ import com.claude.springboot.app.repositories.PqrsRepository;
 import com.claude.springboot.app.security.annotations.PermitirActualizar;
 import com.claude.springboot.app.security.annotations.PermitirEscritura;
 import com.claude.springboot.app.security.annotations.PermitirLectura;
-import com.claude.springboot.app.security.annotations.PublicEndpoint;
+
 import com.claude.springboot.app.security.service.UsuarioService;
 import com.claude.springboot.app.services.FileStorageService;
 import com.claude.springboot.app.services.HistorialAsignacionService;
@@ -54,10 +54,54 @@ public class PqrsController {
     private final UsuarioService usuarioService;
     private final PqrsRepository pqrsRepository;
 
-    // Método para usuarios externos
-    @PostMapping("/publico")
-    public ResponseEntity<?> crearPqrsPublico(@Valid @RequestBody CrearPqrsDTO dto) {
+    // Método para usuarios externos - JSON (compatibilidad hacia atrás)
+    @PostMapping(value = "/publico", consumes = "application/json")
+    public ResponseEntity<?> crearPqrsPublicoJson(@RequestBody CrearPqrsDTO dto) {
+        log.info("Endpoint JSON - archivoAdjunto en DTO: {}", dto.getArchivoAdjunto());
+        
+        // Si hay un archivo en el JSON (como string), crear un mensaje informativo
+        if (dto.getArchivoAdjunto() != null && !dto.getArchivoAdjunto().trim().isEmpty()) {
+            log.warn("Archivo '{}' enviado como string en JSON. Para enviar archivos reales, use multipart/form-data", 
+                     dto.getArchivoAdjunto());
+        }
+        
+        return crearPqrsPublicoInterno(dto, null);
+    }
+
+    // Método para usuarios externos - Multipart (con archivos)
+    @PostMapping(value = "/publico", consumes = "multipart/form-data")
+    public ResponseEntity<?> crearPqrsPublicoMultipart(
+            @RequestParam("nombreSolicitante") String nombreSolicitante,
+            @RequestParam("emailSolicitante") String emailSolicitante,
+            @RequestParam(value = "telefonoSolicitante", required = false) String telefonoSolicitante,
+            @RequestParam("tipoDocumentoSolicitante") String tipoDocumentoSolicitante,
+            @RequestParam("numeroDocumentoSolicitante") String numeroDocumentoSolicitante,
+            @RequestParam("idTema") Long idTema,
+            @RequestParam("titulo") String titulo,
+            @RequestParam("descripcion") String descripcion,
+            @RequestParam(value = "prioridad", required = false) String prioridad,
+            @RequestParam(value = "archivo", required = false) MultipartFile archivo) {
+        
+        // Crear DTO con los parámetros recibidos
+        CrearPqrsDTO dto = new CrearPqrsDTO();
+        dto.setNombreSolicitante(nombreSolicitante);
+        dto.setEmailSolicitante(emailSolicitante);
+        dto.setTelefonoSolicitante(telefonoSolicitante);
+        dto.setTipoDocumentoSolicitante(tipoDocumentoSolicitante);
+        dto.setNumeroDocumentoSolicitante(numeroDocumentoSolicitante);
+        dto.setIdTema(idTema);
+        dto.setTitulo(titulo);
+        dto.setDescripcion(descripcion);
+        dto.setPrioridad(prioridad);
+        
+        return crearPqrsPublicoInterno(dto, archivo);
+    }
+
+    // Método interno compartido
+    private ResponseEntity<?> crearPqrsPublicoInterno(CrearPqrsDTO dto, MultipartFile archivo) {
         try {
+            log.info("Controlador - Archivo recibido: {}", 
+                     archivo != null ? archivo.getOriginalFilename() : "null");
              // Verificar si hay un usuario autenticado
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.isAuthenticated() && !auth.getPrincipal().equals("anonymousUser")) {
@@ -71,7 +115,7 @@ public class PqrsController {
             }
 
             // Si no hay usuario autenticado, proceder normalmente
-            return ResponseEntity.ok(pqrsService.crearPqrsPublico(dto));
+            return ResponseEntity.ok(pqrsService.crearPqrsPublico(dto, archivo));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
@@ -89,7 +133,7 @@ public class PqrsController {
         try {
             PqrsResponseDTO response = pqrsService.crearPqrsUsuarioRegistrado(
                 idTema, titulo, descripcion, prioridad, archivo);
-                System.out.println("esta entrando: " + archivo);
+            System.out.println("esta entrando: " + archivo);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

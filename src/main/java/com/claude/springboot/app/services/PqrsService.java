@@ -13,7 +13,7 @@ import com.claude.springboot.app.dto.PqrsResponseDTO;
 import com.claude.springboot.app.dto.RespuestaSolicitanteDTO;
 
 public interface PqrsService {
-    PqrsResponseDTO crearPqrsPublico(CrearPqrsDTO dto);
+    PqrsResponseDTO crearPqrsPublico(CrearPqrsDTO dto, MultipartFile archivo);
     PqrsResponseDTO crearPqrsUsuarioRegistrado(Long idTema, String titulo, 
         String descripcion, String prioridad, MultipartFile archivo);
     PqrsResponseDTO asignar(Long idPqrs, AsignarPqrsDTO dto);
