@@ -21,9 +21,16 @@ public class PermisoEvaluator {
     
     public boolean tienePermiso(String ruta, TipoPermiso tipoPermiso) {
         try {
+            // Primero verificar si la ruta es pública
+            boolean esPublica = permisoRolRepository.esRutaPublica(ruta);
+            if (esPublica) {
+                log.info("Ruta {} es PÚBLICA - Acceso permitido", ruta);
+                return true;
+            }
+            
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || !auth.isAuthenticated()) {
-                log.warn("No hay autenticación o usuario no está autenticado");
+                log.warn("No hay autenticación o usuario no está autenticado para ruta privada: {}", ruta);
                 return false;
             }
             

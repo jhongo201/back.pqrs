@@ -115,4 +115,15 @@ public interface PermisoRolRepository extends JpaRepository<PermisoRol, Long> {
 
        boolean existsByRolAndRuta(Rol rol, Ruta ruta);
 
+       /**
+        * Verifica si una ruta es pública (es_publica = 1)
+        * @param rutaPath La ruta a verificar
+        * @return true si la ruta es pública, false en caso contrario
+        */
+       @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END " +
+                     "FROM Ruta r " +
+                     "WHERE r.ruta = :rutaPath " +
+                     "AND r.esPublica = true " +
+                     "AND r.estado = true")
+       boolean esRutaPublica(@Param("rutaPath") String rutaPath);
 }
