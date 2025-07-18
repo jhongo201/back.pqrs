@@ -65,18 +65,18 @@ public interface TipoDocumentoRepository extends JpaRepository<TipoDocumento, Lo
     List<TipoDocumento> findByEstadoFalse();
 
     /**
-     * Obtener todos los tipos de documento ordenados por código
+     * Obtener todos los tipos de documento ordenados por nombre alfabéticamente
      * 
-     * @return Lista de tipos de documento ordenados por código
+     * @return Lista de tipos de documento ordenados por nombre
      */
-    List<TipoDocumento> findAllByOrderByCodigoAsc();
+    List<TipoDocumento> findAllByOrderByNombreAsc();
 
     /**
-     * Obtener todos los tipos de documento activos ordenados por código
+     * Obtener todos los tipos de documento activos ordenados por nombre alfabéticamente
      * 
-     * @return Lista de tipos de documento activos ordenados por código
+     * @return Lista de tipos de documento activos ordenados por nombre
      */
-    List<TipoDocumento> findByEstadoTrueOrderByCodigoAsc();
+    List<TipoDocumento> findByEstadoTrueOrderByNombreAsc();
 
     /**
      * Buscar tipos de documento por nombre que contenga el texto especificado
@@ -159,7 +159,8 @@ public interface TipoDocumentoRepository extends JpaRepository<TipoDocumento, Lo
      */
     @Query("SELECT t FROM TipoDocumento t WHERE " +
            "LOWER(t.codigo) LIKE LOWER(CONCAT('%', :termino, '%')) OR " +
-           "LOWER(t.nombre) LIKE LOWER(CONCAT('%', :termino, '%'))")
+           "LOWER(t.nombre) LIKE LOWER(CONCAT('%', :termino, '%')) " +
+           "ORDER BY t.nombre ASC")
     List<TipoDocumento> buscarPorCodigoONombre(@Param("termino") String termino);
 
     /**
@@ -170,6 +171,7 @@ public interface TipoDocumentoRepository extends JpaRepository<TipoDocumento, Lo
      */
     @Query("SELECT t FROM TipoDocumento t WHERE t.estado = true AND " +
            "(LOWER(t.codigo) LIKE LOWER(CONCAT('%', :termino, '%')) OR " +
-           "LOWER(t.nombre) LIKE LOWER(CONCAT('%', :termino, '%')))")
+           "LOWER(t.nombre) LIKE LOWER(CONCAT('%', :termino, '%'))) " +
+           "ORDER BY t.nombre ASC")
     List<TipoDocumento> buscarActivosPorCodigoONombre(@Param("termino") String termino);
 }

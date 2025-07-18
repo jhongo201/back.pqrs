@@ -30,7 +30,7 @@ public class TipoDocumentoServiceImpl implements TipoDocumentoService {
     @Transactional(readOnly = true)
     public List<TipoDocumentoDTO> obtenerTodosLosTiposDocumento() {
         log.debug("Obteniendo todos los tipos de documento");
-        return tipoDocumentoRepository.findAllByOrderByCodigoAsc()
+        return tipoDocumentoRepository.findAllByOrderByNombreAsc()
                 .stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
@@ -40,7 +40,7 @@ public class TipoDocumentoServiceImpl implements TipoDocumentoService {
     @Transactional(readOnly = true)
     public List<TipoDocumentoDTO> obtenerTiposDocumentoActivos() {
         log.debug("Obteniendo tipos de documento activos");
-        return tipoDocumentoRepository.findByEstadoTrueOrderByCodigoAsc()
+        return tipoDocumentoRepository.findByEstadoTrueOrderByNombreAsc()
                 .stream()
                 .map(this::convertirADTO)
                 .collect(Collectors.toList());
