@@ -150,6 +150,10 @@ public class UsuarioController {
     @PublicEndpoint
     public ResponseEntity<?> registrarUsuario(@Valid @RequestBody RegistroUsuarioDTO registroDTO) {
         try {
+            log.info("Datos recibidos para registro: primerNombre={}, otrosNombres={}, primerApellido={}, segundoApellido={}, idMunicipio={}", 
+                    registroDTO.getPrimerNombre(), registroDTO.getOtrosNombres(), 
+                    registroDTO.getPrimerApellido(), registroDTO.getSegundoApellido(), 
+                    registroDTO.getIdMunicipio());
             Usuario usuario = usuarioService.registrarUsuario(registroDTO);
             Map<String, Object> response = usuarioService.convertirUsuarioAMap(usuario);
             return ResponseEntity.ok(response);

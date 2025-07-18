@@ -11,12 +11,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegistroUsuarioDTO {
-    // Datos de la persona
-    @NotBlank(message = "El nombre es obligatorio")
-    private String nombres;
+    // Datos de la persona - Nuevos campos separados (opcionales por ahora para compatibilidad)
+    private String primerNombre;
+    private String otrosNombres;
+    private String primerApellido;
+    private String segundoApellido;
     
-    @NotBlank(message = "Los apellidos son obligatorios")
-    private String apellidos;
+    // Campos legacy para compatibilidad (requeridos si no se envían los nuevos)
+    private String nombres; // Campo original
+    private String apellidos; // Campo original
     
     @NotBlank(message = "El tipo de documento es obligatorio")
     private String tipoDocumento;
@@ -35,6 +38,12 @@ public class RegistroUsuarioDTO {
     
     @NotNull(message = "El ID del área es obligatorio")
     private Long idArea;
+    
+    // Municipio (opcional por ahora para compatibilidad)
+    private String idMunicipio;
+    
+    // Departamento (opcional, puede ser enviado por el frontend)
+    private String departamento;
     
     // Datos del usuario
     @NotBlank(message = "El nombre de usuario es obligatorio")

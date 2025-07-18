@@ -32,6 +32,8 @@ import com.claude.springboot.app.security.repositories.PersonaRepository;
 import com.claude.springboot.app.security.repositories.RolRepository;
 import com.claude.springboot.app.security.repositories.TokenActivacionRepository;
 import com.claude.springboot.app.security.repositories.UsuarioRepository;
+import com.claude.springboot.app.entities.Municipio;
+import com.claude.springboot.app.repositories.MunicipioRepository;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -54,6 +56,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final PasswordEncoder passwordEncoder;
     private final AreaRepository areaRepository;
     private final EmpresaRepository empresaRepository;
+    private final MunicipioRepository municipioRepository;
     private final TokenActivacionRepository tokenActivacionRepository;
     private final EmailService emailService;
     private final PqrsRepository pqrsRepository;
@@ -290,8 +293,63 @@ public Usuario crear(UsuarioDTO usuarioDTO) {
 
             // Crear la persona
             Persona persona = new Persona();
-            persona.setNombres(registroDTO.getNombres());
-            persona.setApellidos(registroDTO.getApellidos());
+            
+            // Verificar si se enviaron los nuevos campos separados o los legacy
+            if (registroDTO.getPrimerNombre() != null && !registroDTO.getPrimerNombre().trim().isEmpty()) {
+                // Usar los nuevos campos separados
+                persona.setPrimerNombre(registroDTO.getPrimerNombre());
+                persona.setOtrosNombres(registroDTO.getOtrosNombres());
+                persona.setPrimerApellido(registroDTO.getPrimerApellido());
+                persona.setSegundoApellido(registroDTO.getSegundoApellido());
+                
+                // Los campos legacy se generarán automáticamente en @PrePersist
+                // pero los establecemos también por compatibilidad
+                String nombresCompletos = registroDTO.getPrimerNombre();
+                if (registroDTO.getOtrosNombres() != null && !registroDTO.getOtrosNombres().trim().isEmpty()) {
+                    nombresCompletos += " " + registroDTO.getOtrosNombres();
+                }
+                persona.setNombres(nombresCompletos);
+                
+                String apellidosCompletos = registroDTO.getPrimerApellido();
+                if (registroDTO.getSegundoApellido() != null && !registroDTO.getSegundoApellido().trim().isEmpty()) {
+                    apellidosCompletos += " " + registroDTO.getSegundoApellido();
+                }
+                persona.setApellidos(apellidosCompletos);
+            } else {
+                // Usar los campos legacy (compatibilidad hacia atrás)
+                persona.setNombres(registroDTO.getNombres());
+                persona.setApellidos(registroDTO.getApellidos());
+                
+                // Intentar separar los nombres y apellidos para los nuevos campos
+                if (registroDTO.getNombres() != null) {
+                    String[] nombres = registroDTO.getNombres().trim().split("\\s+", 2);
+                    persona.setPrimerNombre(nombres[0]);
+                    if (nombres.length > 1) {
+                        persona.setOtrosNombres(nombres[1]);
+                    }
+                }
+                
+                if (registroDTO.getApellidos() != null) {
+                    String[] apellidos = registroDTO.getApellidos().trim().split("\\s+", 2);
+                    persona.setPrimerApellido(apellidos[0]);
+                    if (apellidos.length > 1) {
+                        persona.setSegundoApellido(apellidos[1]);
+                    }
+                }
+            }
+            
+            // Manejar municipio si se proporciona
+            if (registroDTO.getIdMunicipio() != null && !registroDTO.getIdMunicipio().trim().isEmpty()) {
+                Municipio municipio = municipioRepository.findById(registroDTO.getIdMunicipio())
+                        .orElseThrow(() -> new RuntimeException("Municipio no encontrado"));
+                
+                // Validar que el municipio esté activo
+                if (!municipio.getActivo()) {
+                    throw new RuntimeException("El municipio seleccionado no está activo");
+                }
+                persona.setMunicipio(municipio);
+            }
+            
             persona.setTipoDocumento(registroDTO.getTipoDocumento());
             persona.setNumeroDocumento(registroDTO.getNumeroDocumento());
             persona.setEmail(registroDTO.getEmail());
