@@ -672,8 +672,11 @@ private SeguimientoResponseDTO convertSeguimientoToDTO(SeguimientoPqrs seguimien
         return map;
     }
 
-    
-
-    
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PqrsResponseDTO> listarTodos(Pageable pageable) {
+        Page<Pqrs> paginatedPqrs = pqrsRepository.findAll(pageable);
+        return paginatedPqrs.map(this::convertToResponseDTO);
+    }
 
 }

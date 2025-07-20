@@ -38,6 +38,7 @@ public interface PqrsRepository extends JpaRepository<Pqrs, Long> {
     Optional<Pqrs> findByIdWithSeguimientos(@Param("id") Long id);
 
     List<Pqrs> findAllByOrderByIdPqrsDesc();
+    Page<Pqrs> findAll(Pageable pageable);
     List<Pqrs> findByUsuarioAsignadoIsNullOrderByIdPqrsDesc();
     
     List<Pqrs> findByUsuarioCreadorOrderByIdPqrsDesc(String usuarioCreador);

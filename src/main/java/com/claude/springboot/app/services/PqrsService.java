@@ -23,6 +23,7 @@ public interface PqrsService {
     PqrsResponseDTO actualizarEstado(Long idPqrs, String nuevoEstado);
     PqrsResponseDTO obtenerPorId(Long id);
     List<PqrsResponseDTO> listarTodos();
+    Page<PqrsResponseDTO> listarTodos(Pageable pageable);
     List<PqrsResponseDTO> listarPorUsuarioAsignado(Long idUsuario);
     List<PqrsResponseDTO> listarPorEstado(String estado);
     PqrsResponseDTO consultarPorRadicado(String numeroRadicado);

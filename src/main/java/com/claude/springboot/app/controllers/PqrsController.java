@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -205,14 +206,33 @@ public ResponseEntity<?> agregarSeguimiento(
 
     @GetMapping
     @PermitirLectura
-    public ResponseEntity<?> listarTodos() {
+    public ResponseEntity<?> listarTodos(
+            @PageableDefault(size = 10, sort = "idPqrs", direction = Sort.Direction.DESC) Pageable pageable) {
         try {
-            log.info("Iniciando listado de PQRS"); // Agregar log para debug
+            log.info("Iniciando listado paginado de PQRS");
+            Page<PqrsResponseDTO> paginatedResult = pqrsService.listarTodos(pageable);
+            log.info("PQRS recuperadas exitosamente: {} de {}", paginatedResult.getNumberOfElements(), paginatedResult.getTotalElements());
+            return ResponseEntity.ok(paginatedResult);
+        } catch (Exception e) {
+            log.error("Error al listar PQRS: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of(
+                        "error", "Error al listar PQRS",
+                        "mensaje", e.getMessage()
+                    ));
+        }
+    }
+
+    @GetMapping("/todos")
+    @PermitirLectura
+    public ResponseEntity<?> listarTodosSinPaginacion() {
+        try {
+            log.info("Iniciando listado completo de PQRS");
             List<PqrsResponseDTO> pqrs = pqrsService.listarTodos();
             log.info("PQRS recuperadas exitosamente: {}", pqrs.size());
             return ResponseEntity.ok(pqrs);
         } catch (Exception e) {
-            log.error("Error al listar PQRS: ", e); // Agregar log del error
+            log.error("Error al listar PQRS: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of(
                         "error", "Error al listar PQRS",
