@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -514,6 +516,14 @@ private SeguimientoResponseDTO convertSeguimientoToDTO(SeguimientoPqrs seguimien
         return pqrsRepository.findByUsuarioCreadorOrderByIdPqrsDesc(username).stream()
                 .map(this::convertToResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PqrsResponseDTO> listarPqrsUsuario(Pageable pageable) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return pqrsRepository.findByUsuarioCreadorOrderByIdPqrsDesc(username, pageable)
+                .map(this::convertToResponseDTO);
     }
 
     @Override

@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -229,9 +232,22 @@ public ResponseEntity<?> agregarSeguimiento(
 
     @GetMapping("/mis-pqrs")
     @PermitirLectura
-    public ResponseEntity<?> listarPqrsUsuario() {
+    public ResponseEntity<?> listarPqrsUsuario(
+            @PageableDefault(size = 10, sort = "idPqrs", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
         try {
-            return ResponseEntity.ok(pqrsService.listarPqrsUsuario());
+            Page<com.claude.springboot.app.dto.PqrsResponseDTO> paginatedResult = pqrsService.listarPqrsUsuario(pageable);
+            return ResponseEntity.ok(paginatedResult);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/mis-pqrs-todos")
+    @PermitirLectura
+    public ResponseEntity<?> listarTodosPqrsUsuario() {
+        try {
+            List<com.claude.springboot.app.dto.PqrsResponseDTO> allPqrs = pqrsService.listarPqrsUsuario();
+            return ResponseEntity.ok(allPqrs);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

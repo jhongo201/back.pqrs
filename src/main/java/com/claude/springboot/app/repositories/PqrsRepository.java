@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -39,6 +41,7 @@ public interface PqrsRepository extends JpaRepository<Pqrs, Long> {
     List<Pqrs> findByUsuarioAsignadoIsNullOrderByIdPqrsDesc();
     
     List<Pqrs> findByUsuarioCreadorOrderByIdPqrsDesc(String usuarioCreador);
+    Page<Pqrs> findByUsuarioCreadorOrderByIdPqrsDesc(String usuarioCreador, Pageable pageable);
 
     boolean existsByNumeroDocumentoSolicitanteAndTemaAreaIdAreaAndEstadoPqrsNotIn(
         String numeroDocumento, 

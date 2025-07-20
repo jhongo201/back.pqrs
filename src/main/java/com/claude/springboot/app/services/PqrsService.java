@@ -3,6 +3,8 @@ package com.claude.springboot.app.services;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.claude.springboot.app.dto.AsignarPqrsDTO;
@@ -25,6 +27,7 @@ public interface PqrsService {
     List<PqrsResponseDTO> listarPorEstado(String estado);
     PqrsResponseDTO consultarPorRadicado(String numeroRadicado);
     List<PqrsResponseDTO> listarPqrsUsuario();
+    Page<PqrsResponseDTO> listarPqrsUsuario(Pageable pageable);
     List<PqrsResponseDTO> listarPqrsSinAsignar();
     Long obtenerSiguienteSecuencial();
     PqrsResponseDTO consultarPqrsPublico(String numeroRadicado, String token);
