@@ -627,6 +627,9 @@ public Usuario crear(UsuarioDTO usuarioDTO) {
             );
         }
     
+        // NOTA: Validación de PQRS activos comentada porque ahora se permite hasta 3 PQRS activas por tema
+        // La validación específica se hace al momento de crear cada PQRS individual
+        /*
         // Validar PQRS activos
         List<String> estadosFinalizados = Arrays.asList("RESUELTO", "CERRADO");
         if (pqrsRepository.hasActivePqrs(
@@ -640,6 +643,7 @@ public Usuario crear(UsuarioDTO usuarioDTO) {
                     persona.getArea().getNombre())
             );
         }
+        */
     }
 
     private void validateNewUser(RegistroUsuarioDTO registroDTO) {

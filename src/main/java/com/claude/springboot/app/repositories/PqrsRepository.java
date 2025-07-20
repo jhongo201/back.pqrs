@@ -67,6 +67,17 @@ public interface PqrsRepository extends JpaRepository<Pqrs, Long> {
     );
 
     Optional<Pqrs> findByTokenConsulta(String tokenConsulta);
+    
+    // Nuevo método para contar PQRS activas por tema específico
+    @Query("SELECT COUNT(p) FROM Pqrs p " +
+           "WHERE p.numeroDocumentoSolicitante = :numeroDocumento " +
+           "AND p.tema.idTema = :idTema " +
+           "AND p.estadoPqrs NOT IN :estados")
+    long countActivePqrsByTema(
+        @Param("numeroDocumento") String numeroDocumento,
+        @Param("idTema") Long idTema,
+        @Param("estados") List<String> estados
+    );
 
     // metodos para estdisticas del dashboard
     @Query("SELECT COUNT(p) FROM Pqrs p WHERE p.fechaCreacion >= :startDate")

@@ -134,7 +134,7 @@ public class PqrsServiceImpl implements PqrsService {
                 SeguimientoPqrs seguimiento = new SeguimientoPqrs();
                 seguimiento.setPqrs(pqrs);
                 seguimiento.setUsuario(null); // Usuario anónimo
-                seguimiento.setComentario("Archivo adjunto en la creación del PQRS público");
+                seguimiento.setComentario("Archivo adjunto en la creación de la Solicitud pública");
                 seguimiento.setArchivoAdjunto(filePath);
                 seguimiento.setTipoSeguimiento(TipoSeguimiento.ADJUNTO_INICIAL);
                 seguimiento.setFechaCreacion(LocalDateTime.now());
@@ -151,7 +151,7 @@ public class PqrsServiceImpl implements PqrsService {
         }
 
         // Enviar email al solicitante con el link de consulta
-        String linkConsulta = String.format("/pqrs/consulta/%s/%s",
+        String linkConsulta = String.format("%s/%s",
                 pqrs.getNumeroRadicado(),
                 pqrs.getTokenConsulta());
 
@@ -177,10 +177,10 @@ public class PqrsServiceImpl implements PqrsService {
             TemasPqrs tema = temasPqrsRepository.findById(idTema)
                     .orElseThrow(() -> new RuntimeException("Tema no encontrado"));
 
-            // Validar PQRS activos
-            validarPqrsActivos(usuario.getPersona().getNumeroDocumento(), tema.getArea().getIdArea());
+            // Validar Solicitudes activas
+            validarPqrsActivos(usuario.getPersona().getNumeroDocumento(), idTema);
 
-            // Crear el PQRS
+            // Crear la Solicitud
             Pqrs pqrs = new Pqrs();
             pqrs.setTema(tema);
             pqrs.setTitulo(titulo);
@@ -220,24 +220,29 @@ public class PqrsServiceImpl implements PqrsService {
 
             return convertToResponseDTO(pqrs);
         } catch (PqrsActivoException e) {
-            log.error("PQRS activo encontrado: {}", e.getMessage());
+            log.error("Solicitud activa encontrada: {}", e.getMessage());
             throw e; // Re-lanzar la excepción para mantener el mensaje específico
         } catch (Exception e) {
-            log.error("Error al crear PQRS: {}", e.getMessage());
-            throw new RuntimeException("Error al crear PQRS: " + e.getMessage());
+            log.error("Error al crear Solicitud: {}", e.getMessage());
+            throw new RuntimeException("Error al crear Solicitud: " + e.getMessage());
         }
     }
 
-    private void validarPqrsActivos(String numeroDocumento, Long idArea) {
+    private void validarPqrsActivos(String numeroDocumento, Long idTema) {
         List<String> estadosFinalizados = Arrays.asList("RESUELTO", "CERRADO");
         
-        if (pqrsRepository.hasActivePqrs(
+        // Contar Solicitudes activas por tema específico
+        long pqrsActivasCount = pqrsRepository.countActivePqrsByTema(
                 numeroDocumento,
-                idArea,
-                estadosFinalizados)) {
-            
+                idTema,
+                estadosFinalizados);
+        
+        // Permitir máximo 3 Solicitudes activas por tema
+        if (pqrsActivasCount >= 3) {
             throw new PqrsActivoException(
-                String.format("Ya existe una PQRS activa para este número de documento en el área seleccionada")
+                String.format("Ya tiene el máximo permitido de 3 Solicitud activas para este tema. " +
+                             "Actualmente tiene %d Solicitud activas. Debe esperar a que se resuelvan " +
+                             "antes de crear una nueva.", pqrsActivasCount)
             );
         }
     }
@@ -246,7 +251,7 @@ public class PqrsServiceImpl implements PqrsService {
     @Transactional
     public PqrsResponseDTO asignar(Long idPqrs, AsignarPqrsDTO dto) {
         Pqrs pqrs = pqrsRepository.findById(idPqrs)
-                .orElseThrow(() -> new RuntimeException("PQRS no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
         Usuario usuarioNuevo = usuarioRepository.findById(dto.getIdUsuarioNuevo())
                 .orElseThrow(() -> new RuntimeException("Usuario nuevo no encontrado"));
@@ -272,7 +277,7 @@ public class PqrsServiceImpl implements PqrsService {
         try {
             // Obtener la PQRS
             Pqrs pqrs = pqrsRepository.findById(idPqrs)
-                    .orElseThrow(() -> new RuntimeException("PQRS no encontrado"));
+                    .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
             // Obtener usuario actual
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -317,7 +322,7 @@ public class PqrsServiceImpl implements PqrsService {
     @Transactional
     public PqrsResponseDTO actualizarEstado(Long idPqrs, String nuevoEstado) {
         Pqrs pqrs = pqrsRepository.findById(idPqrs)
-                .orElseThrow(() -> new RuntimeException("PQRS no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrado"));
 
         pqrs.setEstadoPqrs(nuevoEstado);
         pqrs = pqrsRepository.save(pqrs);
@@ -329,7 +334,7 @@ public class PqrsServiceImpl implements PqrsService {
     @Transactional(readOnly = true)
     public PqrsResponseDTO obtenerPorId(Long id) {
         Pqrs pqrs = pqrsRepository.findByIdWithSeguimientos(id)
-                .orElseThrow(() -> new RuntimeException("PQRS no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrado"));
         return convertToResponseDTO(pqrs);
     }
 
@@ -341,8 +346,8 @@ public class PqrsServiceImpl implements PqrsService {
                     .map(this::convertToResponseDTO)
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            log.error("Error al listar todas las PQRS: ", e);
-            throw new RuntimeException("Error al obtener la lista de PQRS: " + e.getMessage());
+            log.error("Error al listar todas las Solicitud: ", e);
+            throw new RuntimeException("Error al obtener la lista de Solicitud: " + e.getMessage());
         }
     }
 
@@ -498,7 +503,7 @@ private SeguimientoResponseDTO convertSeguimientoToDTO(SeguimientoPqrs seguimien
     @Transactional(readOnly = true)
     public PqrsResponseDTO consultarPorRadicado(String numeroRadicado) {
         Pqrs pqrs = pqrsRepository.findByNumeroRadicado(numeroRadicado)
-                .orElseThrow(() -> new RuntimeException("PQRS no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
         return convertToResponseDTO(pqrs);
     }
 
@@ -529,13 +534,13 @@ private SeguimientoResponseDTO convertSeguimientoToDTO(SeguimientoPqrs seguimien
     @Transactional(readOnly = true)
     public PqrsResponseDTO consultarPqrsPublico(String numeroRadicado, String token) {
         Pqrs pqrs = pqrsRepository.findByNumeroRadicadoAndTokenConsulta(numeroRadicado, token)
-                .orElseThrow(() -> new RuntimeException("PQRS no encontrado o token inválido"));
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada o token inválido"));
         return convertToResponseDTO(pqrs);
     }
 
     public PqrsResponseDTO consultarPqrsPorToken(String token) {
         Pqrs pqrs = pqrsRepository.findByTokenConsulta(token)
-            .orElseThrow(() -> new RuntimeException("PQRS no encontrado"));
+            .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
         return convertToResponseDTO(pqrs);
     }
 
@@ -544,7 +549,7 @@ private SeguimientoResponseDTO convertSeguimientoToDTO(SeguimientoPqrs seguimien
     public PqrsResponseDTO agregarRespuestaSolicitante(String numeroRadicado, String token,
             RespuestaSolicitanteDTO dto) {
         Pqrs pqrs = pqrsRepository.findByNumeroRadicadoAndTokenConsulta(numeroRadicado, token)
-                .orElseThrow(() -> new RuntimeException("PQRS no encontrado o token inválido"));
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada o token inválido"));
 
         SeguimientoPqrs seguimiento = new SeguimientoPqrs();
         seguimiento.setPqrs(pqrs);
@@ -567,7 +572,7 @@ private SeguimientoResponseDTO convertSeguimientoToDTO(SeguimientoPqrs seguimien
     @Transactional
     public PqrsResponseDTO agregarRespuestaUsuario(Long idPqrs, String username, CrearSeguimientoDTO dto) {
         Pqrs pqrs = pqrsRepository.findById(idPqrs)
-                .orElseThrow(() -> new RuntimeException("PQRS no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
         // Obtener el usuario
         Usuario usuario = usuarioRepository.findByUsername(username)
@@ -595,7 +600,7 @@ private SeguimientoResponseDTO convertSeguimientoToDTO(SeguimientoPqrs seguimien
     @Transactional
     public PqrsResponseDTO actualizarPrioridad(Long idPqrs, String nuevoEstado) {
         Pqrs pqrs = pqrsRepository.findById(idPqrs)
-                .orElseThrow(() -> new RuntimeException("PQRS no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Solicitud no encontrada"));
 
         pqrs.setPrioridad(nuevoEstado);
         pqrs = pqrsRepository.save(pqrs);

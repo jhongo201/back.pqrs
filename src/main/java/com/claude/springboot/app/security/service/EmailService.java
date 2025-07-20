@@ -45,7 +45,7 @@ public class EmailService {
             context.setVariable("nombre", nombre);
             context.setVariable("token", token);
             context.setVariable("codigo", codigo);
-            context.setVariable("urlActivacion", frontendUrl + "/activate-user/" + token);
+            context.setVariable("urlActivacion", frontendUrl + "/activate-user/" + codigo);
             
             // Procesar el template
             String contenido = templateEngine.process("activacion-cuenta", context);
@@ -180,7 +180,7 @@ public class EmailService {
             context.setVariable("titulo", pqrs.getTitulo());
             context.setVariable("tema", pqrs.getTema().getNombre());
             context.setVariable("prioridad", pqrs.getPrioridad());
-            context.setVariable("urlConsulta", frontendUrl + "/pqrs/consulta-pqrs/" + pqrs.getTokenConsulta());
+            context.setVariable("urlConsulta", frontendUrl + "/consulta-pqrs/" + pqrs.getNumeroRadicado() + "/" + pqrs.getTokenConsulta());
             
             // Procesar el template
             String contenido = templateEngine.process("notificacion-confirmation", context);
@@ -217,7 +217,7 @@ public class EmailService {
     
             // URL de consulta dependiendo del tipo de usuario
             String urlConsulta = (pqrs.getTokenConsulta() != null) ?
-                frontendUrl + "/consulta-pqrs/" + pqrs.getTokenConsulta() :
+                frontendUrl + "/consulta-pqrs/" + pqrs.getNumeroRadicado() + "/" + pqrs.getTokenConsulta() :
                 frontendUrl + "/pqrs/" + pqrs.getIdPqrs();
             context.setVariable("urlConsulta", urlConsulta);
             

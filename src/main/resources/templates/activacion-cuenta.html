@@ -2,128 +2,505 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Activación de Cuenta</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activación de Cuenta - Ministerio del Trabajo</title>
     <style>
+        /* Estilos compatibles con clientes de email */
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
+            color: #2c3e50;
+            background-color: #f8fafc;
+            margin: 0;
             padding: 20px;
         }
-        .header {
-            text-align: center;
-            padding: 2rem 1rem;
-            background-color: #f0f9ff;
-            border-radius: 8px;
-            margin-bottom: 2rem;
-        }
-        .header h1 {
-            color: #0369a1;
-            margin: 0;
-            font-size: 1.8rem;
-        }
-        .welcome-text {
-            font-size: 1.1rem;
-            color: #374151;
-            margin-bottom: 2rem;
-            text-align: center;
-        }
-        .content {
+
+        .email-container {
+            max-width: 650px;
+            margin: 0 auto;
             background-color: #ffffff;
-            padding: 2rem;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-            margin-bottom: 2rem;
         }
-        .activation-button {
-            display: inline-block;
-            background-color: #0284c7;
-            color: #ffffff !important;
-            padding: 1rem 2rem;
-            text-decoration: none;
-            border-radius: 6px;
-            font-weight: bold;
+
+        /* Header institucional - Con gradiente compatible */
+        .email-header {
+            background-color: #059669; /* Fallback sólido */
+            background-image: linear-gradient(135deg, #059669 0%, #10b981 100%);
+            color: white;
+            padding: 30px 40px;
             text-align: center;
-            margin: 1rem 0;
+            position: relative;
+        }
+
+        .email-header::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
             width: 100%;
-            box-sizing: border-box;
+            height: 20px;
+            background-image: url('data:image/svg+xml;charset=utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20" fill="rgba(255,255,255,0.1)"><polygon points="0,20 100,0 100,20"/></svg>');
+            background-repeat: repeat-x;
+            background-size: 100px 20px;
         }
-        .activation-button:hover {
-            background-color: #0369a1;
+
+        .logo-section {
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
         }
-        .code-container {
-            background-color: #f8fafc;
-            border: 2px dashed #e2e8f0;
-            border-radius: 6px;
-            padding: 1.5rem;
-            margin: 2rem 0;
-            text-align: center;
+
+        .logo {
+            width: 120px;
+            height: auto;
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
-        .code {
-            font-family: monospace;
+
+        .header-title {
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-title h1 {
             font-size: 2rem;
-            color: #0369a1;
-            letter-spacing: 0.25rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            margin-top: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title p {
+            font-size: 1rem;
+            margin: 0;
+            opacity: 0.95;
+        }
+
+        /* Contenido principal */
+        .email-content {
+            padding: 40px;
+        }
+
+        .greeting {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            color: #374151;
+            text-align: center;
+        }
+
+        .greeting strong {
+            color: #059669;
+        }
+
+        .welcome-message {
+            background-color: #ecfdf5; /* Fallback */
+            background-image: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+            border: 1px solid #d1fae5;
+            border-left: 4px solid #10b981;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .welcome-message table {
+            width: 100%;
+        }
+
+        .welcome-icon {
+            background-color: #10b981;
+            color: white;
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            vertical-align: middle;
             font-weight: bold;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+            font-size: 1.2rem;
         }
+
+        .welcome-text {
+            font-weight: 600;
+            color: #065f46;
+            padding-left: 15px;
+            vertical-align: middle;
+            font-size: 1.1rem;
+        }
+
+        /* Sección de activación - Con gradiente */
+        .activation-section {
+            background-color: #eff6ff; /* Fallback */
+            background-image: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+        }
+
+        .activation-section h3 {
+            color: #1e3a8a;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            margin-top: 0;
+        }
+
+        .activation-section p {
+            color: #374151;
+            margin-bottom: 25px;
+            font-size: 1rem;
+        }
+
+        /* Botón CTA - Con gradiente y efectos */
+        .activation-button {
+            background-color: #059669 !important; /* Fallback */
+            background-image: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+            color: #ffffff !important;
+            padding: 16px 40px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin: 15px 0;
+            text-align: center;
+            display: inline-block;
+            min-width: 250px;
+            border: 2px solid #059669;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .activation-button:hover {
+            background-color: #047857 !important;
+            background-image: linear-gradient(135deg, #047857 0%, #059669 100%) !important;
+            border-color: #047857;
+            box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* Código de activación - Con mejores estilos */
+        .code-section {
+            background-color: #f8fafc; /* Fallback */
+            background-image: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            border: 1px solid #e2e8f0;
+            border-top: 3px solid #f59e0b;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .code-section::before {
+            content: "";
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            height: 3px;
+            background-color: #f59e0b; /* Fallback */
+            background-image: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .code-section h4 {
+            color: #d97706;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .code-container {
+            background-color: #ffffff;
+            border: 2px dashed #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .code {
+            font-family: 'Courier New', monospace;
+            font-size: 2.2rem;
+            color: #059669;
+            letter-spacing: 0.3rem;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: rgba(5, 150, 105, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(5, 150, 105, 0.2);
+            display: inline-block;
+        }
+
+        .code-instructions {
+            font-size: 0.95rem;
+            color: #6b7280;
+            margin-top: 15px;
+        }
+
+        /* Mensaje de expiración */
+        .expiry-notice {
+            background-color: #fef3c7;
+            border: 1px solid #fde68a;
+            border-left: 4px solid #f59e0b;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .expiry-notice table {
+            width: 100%;
+        }
+
+        .expiry-icon {
+            background-color: #f59e0b;
+            color: white;
+            width: 28px;
+            height: 28px;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: bold;
+            border-radius: 50%;
+            font-size: 0.9rem;
+        }
+
         .expiry-text {
-            font-size: 0.9rem;
-            color: #6b7280;
-            text-align: center;
-            margin-top: 1rem;
+            font-weight: 600;
+            color: #92400e;
+            padding-left: 15px;
+            vertical-align: middle;
+            font-size: 0.95rem;
         }
-        .footer {
-            text-align: center;
-            padding-top: 2rem;
-            border-top: 1px solid #e5e7eb;
-            color: #6b7280;
+
+        /* URL alternativa */
+        .url-fallback {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .url-fallback p {
             font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 8px;
         }
-        .info-text {
-            background-color: #fff7ed;
-            border-left: 4px solid #fb923c;
-            padding: 1rem;
-            margin: 1rem 0;
-            font-size: 0.9rem;
-            color: #7c2d12;
+
+        .url-text {
+            word-break: break-all;
+            font-size: 0.875rem;
+            color: #059669;
+            font-family: monospace;
+            background-color: white;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Footer institucional - Con gradiente */
+        .email-footer {
+            background-color: #1f2937; /* Fallback */
+            background-image: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .email-footer::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background-image: url('data:image/svg+xml;charset=utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20" fill="rgba(255,255,255,0.05)"><polygon points="0,0 100,20 0,20"/></svg>');
+            background-repeat: repeat-x;
+            background-size: 100px 20px;
+        }
+
+        .footer-content {
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-content p {
+            margin-bottom: 8px;
+        }
+
+        .footer-divider {
+            width: 60px;
+            height: 2px;
+            background-color: #10b981;
+            background-image: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+            margin: 20px auto;
+            border-radius: 1px;
+        }
+
+        .institutional-info {
+            font-size: 0.875rem;
+            line-height: 1.5;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .institutional-info strong {
+            color: #6ee7b7;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .email-header,
+            .email-content,
+            .email-footer {
+                padding: 25px 20px;
+            }
+
+            .logo {
+                width: 100px;
+            }
+
+            .header-title h1 {
+                font-size: 1.6rem;
+            }
+
+            .activation-button {
+                display: block;
+                padding: 14px 20px;
+                font-size: 1rem;
+                min-width: auto;
+            }
+
+            .code {
+                font-size: 1.8rem;
+                letter-spacing: 0.2rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>¡Bienvenido!</h1>
-    </div>
-    
-    <div class="welcome-text">
-        Hola <strong th:text="${nombre}">Usuario</strong>, gracias por registrarte en nuestro sistema.
-    </div>
-    
-    <div class="content">
-        <p>Para empezar a usar tu cuenta, necesitamos verificar tu dirección de correo electrónico.</p>
+    <div class="email-container">
+        <!-- Header institucional -->
+        <div class="email-header">
+            <div class="logo-section">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/f/f8/Logo_del_Ministerio_de_Trabajo_de_Colombia_2022-2026.png" 
+                     alt="Ministerio del Trabajo" class="logo">
+            </div>
+            <div class="header-title">
+                <h1>¡Bienvenido!</h1>
+                <p>Activación de Cuenta</p>
+            </div>
+        </div>
         
-        <a th:href="${urlActivacion}" class="activation-button">
-            Activar mi cuenta
-        </a>
+        <!-- Contenido principal -->
+        <div class="email-content">
+            <div class="greeting">
+                Hola <strong th:text="${nombre}">Usuario</strong>, gracias por registrarte en nuestro sistema.
+            </div>
+            
+            <div class="welcome-message">
+                <table cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td class="welcome-icon">👋</td>
+                        <td class="welcome-text">
+                            ¡Su cuenta ha sido creada exitosamente!
+                        </td>
+                    </tr>
+                </table>
+            </div>
 
-        <div class="info-text">
-            Si el botón no funciona, puedes usar el siguiente código de activación:
+            <p style="color: #374151; margin-bottom: 25px; text-align: center;">
+                Para empezar a usar su cuenta, necesitamos verificar su dirección de correo electrónico.
+            </p>
+            
+            <!-- Sección de activación -->
+            <div class="activation-section">
+                <h3>🔐 Activar mi Cuenta</h3>
+                <p>Haga clic en el siguiente botón para activar su cuenta de forma inmediata:</p>
+                
+                <table cellpadding="0" cellspacing="0" border="0" align="center">
+                    <tr>
+                        <td>
+                            <a th:href="${urlActivacion}" class="activation-button" style="background-color: #059669 !important; background-image: linear-gradient(135deg, #059669 0%, #10b981 100%) !important; color: #ffffff !important; padding: 16px 40px; text-decoration: none; font-weight: 600; font-size: 1.1rem; text-align: center; display: inline-block; min-width: 250px; border: 2px solid #059669; border-radius: 8px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">
+                                Activar mi Cuenta
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- URL alternativa -->
+            <div class="url-fallback">
+                <p><strong>¿El botón no funciona?</strong> Copie y pegue el siguiente enlace en su navegador:</p>
+                <div class="url-text" th:text="${urlActivacion}">http://ejemplo.com</div>
+            </div>
+
+            <!-- Código de activación alternativo -->
+            <div class="code-section">
+                <h4>💡 Código de Activación Alternativo</h4>
+                <p style="color: #6b7280; margin-bottom: 15px; font-size: 0.95rem;">
+                    Si prefiere, también puede usar el siguiente código en la página de activación:
+                </p>
+                
+                <div class="code-container">
+                    <div class="code" th:text="${codigo}">123456</div>
+                    <div class="code-instructions">Ingrese este código en la página de activación</div>
+                </div>
+            </div>
+
+            <!-- Aviso de expiración -->
+            <div class="expiry-notice">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                    <tr>
+                        <td class="expiry-icon">⏰</td>
+                        <td class="expiry-text">
+                            Este código expirará en 24 horas por razones de seguridad
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 0.95rem; margin-top: 25px; text-align: center;">
+                <strong>Importante:</strong> Si no solicitó esta cuenta, puede ignorar este mensaje de forma segura.
+            </p>
         </div>
         
-        <div class="code-container">
-            <div class="code" th:text="${codigo}">123456</div>
-            <p>Ingresa este código en la página de activación</p>
+        <!-- Footer institucional -->
+        <div class="email-footer">
+            <div class="footer-content">
+                <p><strong>Este es un mensaje automático</strong></p>
+                <p>Por favor no responda a este correo electrónico</p>
+            </div>
+            
+            <div class="footer-divider"></div>
+            
+            <div class="institutional-info">
+                <p><strong>Ministerio del Trabajo de Colombia</strong></p>
+                <p>Sistema de Solicitudes</p>
+                <p style="margin-top: 10px; font-size: 0.8rem;">
+                    Comprometidos con la innovación y el servicio al ciudadano
+                </p>
+            </div>
         </div>
-        
-        <div class="expiry-text">
-            ⚠️ Este código expirará en 24 horas por razones de seguridad.
-        </div>
-    </div>
-    
-    <div class="footer">
-        <p>Este es un mensaje automático, por favor no respondas a este correo.</p>
-        <p>Si no solicitaste esta cuenta, puedes ignorar este mensaje.</p>
     </div>
 </body>
 </html>

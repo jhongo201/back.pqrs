@@ -2,119 +2,622 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Actualización de PQRS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actualización de Solicitud - Ministerio del Trabajo</title>
     <style>
+        /* Estilos compatibles con clientes de email */
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 4px solid #3b82f6;
-        }
-        .content {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 5px;
-            border: 1px solid #e5e7eb;
-        }
-        .info-box {
+            color: #2c3e50;
             background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 5px;
-            padding: 15px;
-            margin: 15px 0;
+            margin: 0;
+            padding: 20px;
         }
-        .info-item {
-            margin-bottom: 10px;
+
+        .email-container {
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: #ffffff;
         }
-        .info-label {
+
+        /* Header institucional - Con gradiente azul más oscuro para seguimiento */
+        .email-header {
+            background-color: #1e40af; /* Fallback sólido */
+            background-image: linear-gradient(135deg, #1e40af 0%, #3730a3 100%);
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+            position: relative;
+            border-bottom: 4px solid #fbbf24; /* Distintivo dorado para seguimiento */
+        }
+
+        .email-header::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background-image: url('data:image/svg+xml;charset=utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20" fill="rgba(255,255,255,0.1)"><polygon points="0,20 100,0 100,20"/></svg>');
+            background-repeat: repeat-x;
+            background-size: 100px 20px;
+        }
+
+        .logo-section {
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-title {
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-title h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            margin-top: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title p {
+            font-size: 1rem;
+            margin: 0;
+            opacity: 0.95;
+        }
+
+        /* Contenido principal */
+        .email-content {
+            padding: 40px;
+        }
+
+        .greeting {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            color: #374151;
+        }
+
+        .greeting strong {
+            color: #1e40af;
+        }
+
+        .update-message {
+            background-color: #f3f4f6; /* Fallback */
+            background-image: linear-gradient(135deg, #f3f4f6 0%, #ffffff 100%);
+            border: 1px solid #d1d5db;
+            border-left: 4px solid #7c3aed;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .update-message table {
+            width: 100%;
+        }
+
+        .update-icon {
+            background-color: #7c3aed;
+            color: white;
+            width: 32px;
+            height: 32px;
+            text-align: center;
+            vertical-align: middle;
             font-weight: bold;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+        }
+
+        .update-text {
+            font-weight: 600;
+            color: #374151;
+            padding-left: 15px;
+            vertical-align: middle;
+        }
+
+        /* Caja de información - Con gradiente y efectos */
+        .info-box {
+            background-color: #f8fafc; /* Fallback */
+            background-image: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            border: 1px solid #e2e8f0;
+            border-top: 3px solid #7c3aed;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .info-box::before {
+            content: "";
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            height: 3px;
+            background-color: #3b82f6; /* Fallback */
+            background-image: linear-gradient(90deg, #3b82f6 0%, #1e40af 100%);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .info-box h3 {
+            color: #1e40af;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            margin-top: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .info-item {
+            margin-bottom: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+            transition: all 0.2s ease;
+        }
+
+        .info-item:hover {
+            background-color: rgba(124, 58, 237, 0.02);
+            border-radius: 6px;
+            padding: 12px 8px;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-item table {
+            width: 100%;
+        }
+
+        .info-icon {
+            background-color: #7c3aed;
+            color: white;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            vertical-align: top;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(124, 58, 237, 0.2);
+        }
+
+        .info-content {
+            padding-left: 15px;
+            vertical-align: top;
+        }
+
+        .info-label {
+            font-weight: 600;
             color: #4b5563;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .button {
+
+        .info-value {
+            font-size: 1.05rem;
+            color: #1f2937;
+            font-weight: 500;
+        }
+
+        .info-value.highlight {
+            color: #1e40af;
+            font-weight: 700;
+            background-color: rgba(59, 130, 246, 0.1);
+            padding: 4px 8px;
+            font-family: monospace;
+            border-radius: 4px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
             display: inline-block;
-            background-color: #3b82f6;
-            color: #ffffff !important;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
-            text-align: center;
         }
-        .footer {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
-            font-size: 0.875rem;
-            color: #6b7280;
-            text-align: center;
-        }
+
+        /* Estados con colores mejorados */
         .status-badge {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 6px 12px;
+            border-radius: 20px;
             font-size: 0.875rem;
-            font-weight: 500;
-            background-color: #e2e8f0;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        .estado-pendiente { background-color: #fef3c7; color: #92400e; }
-        .estado-proceso { background-color: #e0f2fe; color: #075985; }
-        .estado-resuelto { background-color: #dcfce7; color: #166534; }
-        .estado-cerrado { background-color: #f1f5f9; color: #475569; }
+
+        .estado-pendiente { 
+            background-color: #fef3c7; 
+            color: #92400e; 
+            border-color: #fbbf24;
+        }
+        .estado-proceso { 
+            background-color: #dbeafe; 
+            color: #1e40af; 
+            border-color: #3b82f6;
+        }
+        .estado-resuelto { 
+            background-color: #dcfce7; 
+            color: #166534; 
+            border-color: #22c55e;
+        }
+        .estado-cerrado { 
+            background-color: #f1f5f9; 
+            color: #475569; 
+            border-color: #94a3b8;
+        }
+
+        /* Sección de acceso - Con gradiente azul */
+        .access-section {
+            background-color: #eff6ff; /* Fallback */
+            background-image: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+            position: relative;
+        }
+
+        /* Indicador distintivo de seguimiento */
+        .access-section::before {
+            content: "SEGUIMIENTO";
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background-color: #f59e0b;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 12px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+        }
+
+        .access-section h3 {
+            color: #1e40af;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            margin-top: 0;
+        }
+
+        .access-section p {
+            color: #374151;
+            margin-bottom: 20px;
+        }
+
+        /* Botón CTA - Con gradiente azul */
+        .cta-button {
+            background-color: #3b82f6 !important; /* Fallback */
+            background-image: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important;
+            color: #ffffff !important;
+            padding: 15px 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            margin: 10px 0;
+            text-align: center;
+            display: inline-block;
+            min-width: 200px;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background-color: #1e40af !important;
+            background-image: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%) !important;
+            border-color: #1e40af;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* URL alternativa - Con mejores estilos */
+        .url-fallback {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .url-fallback p {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .url-text {
+            word-break: break-all;
+            font-size: 0.875rem;
+            color: #3b82f6;
+            font-family: monospace;
+            background-color: white;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Información adicional */
+        .additional-info {
+            background-color: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-left: 4px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+
+        .additional-info table {
+            width: 100%;
+        }
+
+        .additional-info-icon {
+            background-color: #0ea5e9;
+            color: white;
+            width: 28px;
+            height: 28px;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: bold;
+            border-radius: 50%;
+            font-size: 0.9rem;
+        }
+
+        .additional-info-text {
+            font-weight: 500;
+            color: #0c4a6e;
+            padding-left: 15px;
+            vertical-align: middle;
+            font-size: 0.95rem;
+        }
+
+        /* Footer institucional - Con gradiente */
+        .email-footer {
+            background-color: #1f2937; /* Fallback */
+            background-image: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .email-footer::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background-image: url('data:image/svg+xml;charset=utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20" fill="rgba(255,255,255,0.05)"><polygon points="0,0 100,20 0,20"/></svg>');
+            background-repeat: repeat-x;
+            background-size: 100px 20px;
+        }
+
+        .footer-content {
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-content p {
+            margin-bottom: 8px;
+        }
+
+        .footer-divider {
+            width: 60px;
+            height: 2px;
+            background-color: #3b82f6;
+            background-image: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+            margin: 20px auto;
+            border-radius: 1px;
+        }
+
+        .institutional-info {
+            font-size: 0.875rem;
+            line-height: 1.5;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .institutional-info strong {
+            color: #93c5fd;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .email-header,
+            .email-content,
+            .email-footer {
+                padding: 25px 20px;
+            }
+
+            .logo {
+                width: 100px;
+            }
+
+            .header-title h1 {
+                font-size: 1.5rem;
+            }
+
+            .cta-button {
+                display: block;
+                padding: 12px 20px;
+                font-size: 0.95rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h2>Actualización de su PQRS</h2>
-    </div>
-    
-    <div class="content">
-        <p>Estimado(a) <strong th:text="${nombreUsuario}">usuario</strong>,</p>
-        
-        <p>Se ha registrado una actualización en su solicitud:</p>
-        
-        <div class="info-box">
-            <div class="info-item">
-                <span class="info-label">Número de Radicado:</span>
-                <strong th:text="${numeroRadicado}">RAD123</strong>
+    <div class="email-container">
+        <!-- Header institucional -->
+        <div class="email-header">
+            <div class="logo-section">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/f/f8/Logo_del_Ministerio_de_Trabajo_de_Colombia_2022-2026.png" 
+                     alt="Ministerio del Trabajo" class="logo">
             </div>
-            
-            <div class="info-item">
-                <span class="info-label">Tipo de Actualización:</span>
-                <span th:text="${tipoActualizacion}">Seguimiento</span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">Estado Actual:</span>
-                <span class="status-badge" th:classappend="'estado-' + ${#strings.toLowerCase(estadoPqrs)}"
-                      th:text="${estadoPqrs}">En Proceso</span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">Fecha de Actualización:</span>
-                <span th:text="${fechaSeguimiento}">01/01/2024</span>
+            <div class="header-title">
+                <h1>Actualización de Solicitud</h1>
+                <p>Sistema de Seguimiento</p>
             </div>
         </div>
+        
+        <!-- Contenido principal -->
+        <div class="email-content">
+            <div class="greeting">
+                Estimado(a) <strong th:text="${nombreUsuario}">usuario</strong>,
+            </div>
+            
+            <div class="update-message">
+                <table cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td class="update-icon">🔔</td>
+                        <td class="update-text">
+                            Se ha registrado una nueva actualización en su solicitud
+                        </td>
+                    </tr>
+                </table>
+            </div>
 
-        <p>Para ver los detalles completos de la actualización, por favor haga clic en el siguiente botón:</p>
+            <p style="color: #374151; margin-bottom: 25px;">
+                Le informamos que su solicitud ha tenido el siguiente progreso:
+            </p>
+            
+            <!-- Información de la actualización -->
+            <div class="info-box">
+                <h3>📋 Detalles de la Actualización</h3>
+                
+                <div class="info-item">
+                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                        <tr>
+                            <td class="info-icon">#</td>
+                            <td class="info-content">
+                                <div class="info-label">NÚMERO DE RADICADO</div>
+                                <div class="info-value highlight" th:text="${numeroRadicado}">RAD123</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="info-item">
+                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                        <tr>
+                            <td class="info-icon">🔄</td>
+                            <td class="info-content">
+                                <div class="info-label">TIPO DE ACTUALIZACIÓN</div>
+                                <div class="info-value" th:text="${tipoActualizacion}">Seguimiento</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="info-item">
+                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                        <tr>
+                            <td class="info-icon">📊</td>
+                            <td class="info-content">
+                                <div class="info-label">ESTADO ACTUAL</div>
+                                <div class="status-badge" th:classappend="'estado-' + ${#strings.toLowerCase(estadoPqrs)}"
+                                     th:text="${estadoPqrs}">En Proceso</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="info-item">
+                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                        <tr>
+                            <td class="info-icon">📅</td>
+                            <td class="info-content">
+                                <div class="info-label">FECHA DE ACTUALIZACIÓN</div>
+                                <div class="info-value" th:text="${fechaSeguimiento}">01/01/2024</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sección de acceso -->
+            <div class="access-section">
+                <h3>🔍 Ver Detalles Completos</h3>
+                <p>Para consultar todos los detalles de esta actualización y el historial completo de su solicitud:</p>
+                
+                <table cellpadding="0" cellspacing="0" border="0" align="center">
+                    <tr>
+                        <td>
+                            <a th:href="${urlConsulta}" class="cta-button" style="background-color: #3b82f6 !important; background-image: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%) !important; color: #ffffff !important; padding: 15px 30px; text-decoration: none; font-weight: 600; font-size: 1rem; text-align: center; display: inline-block; min-width: 200px; border: 2px solid #3b82f6; border-radius: 8px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                                Ver Detalles de la Actualización
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- URL alternativa -->
+            <div class="url-fallback">
+                <p><strong>¿El botón no funciona?</strong> Copie y pegue el siguiente enlace en su navegador:</p>
+                <div class="url-text" th:text="${urlConsulta}">http://ejemplo.com</div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="additional-info">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                    <tr>
+                        <td class="additional-info-icon">💡</td>
+                        <td class="additional-info-text">
+                            Le mantendremos informado sobre cualquier cambio adicional en el estado de su solicitud
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
+            <p style="color: #6b7280; font-size: 0.95rem; margin-top: 20px;">
+                <strong>Importante:</strong> Conserve este correo para futuras consultas sobre su solicitud.
+            </p>
+        </div>
         
-        <a th:href="${urlConsulta}" class="button">Ver Detalles de la Actualización</a>
-        
-        <p style="font-size: 0.875rem; color: #6b7280;">Si el botón no funciona, puede copiar y pegar el siguiente enlace en su navegador:</p>
-        <p style="word-break: break-all; font-size: 0.875rem; color: #6b7280;" th:text="${urlConsulta}">http://ejemplo.com</p>
-    </div>
-    
-    <div class="footer">
-        <p>Este es un mensaje automático, por favor no responda a este correo.</p>
-        <p>Sistema de Gestión de PQRS</p>
+        <!-- Footer institucional -->
+        <div class="email-footer">
+            <div class="footer-content">
+                <p><strong>Este es un mensaje automático</strong></p>
+                <p>Por favor no responda a este correo electrónico</p>
+            </div>
+            
+            <div class="footer-divider"></div>
+            
+            <div class="institutional-info">
+                <p><strong>Ministerio del Trabajo de Colombia</strong></p>
+                <p>Sistema de Gestión de Solicitudes</p>
+                <p style="margin-top: 10px; font-size: 0.8rem;">
+                    Comprometidos con la transparencia y el servicio al ciudadano
+                </p>
+            </div>
+        </div>
     </div>
 </body>
 </html>

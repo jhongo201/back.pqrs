@@ -2,110 +2,546 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Confirmación de Radicación PQRS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación de Radicación de Solicitud - Ministerio del Trabajo</title>
     <style>
+        /* Estilos compatibles con clientes de email */
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 4px solid #3b82f6;
-        }
-        .content {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 5px;
-            border: 1px solid #e5e7eb;
-        }
-        .info-box {
+            color: #2c3e50;
             background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 5px;
-            padding: 15px;
-            margin: 15px 0;
+            margin: 0;
+            padding: 20px;
         }
-        .info-item {
-            margin-bottom: 10px;
+
+        .email-container {
+            max-width: 650px;
+            margin: 0 auto;
+            background-color: #ffffff;
         }
-        .info-label {
-            font-weight: bold;
-            color: #4b5563;
-            min-width: 120px;
-            display: inline-block;
-        }
-        .button {
-            display: inline-block;
-            background-color: #3b82f6;
-            color: #ffffff !important;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
+
+        /* Header institucional - Con gradiente compatible */
+        .email-header {
+            background-color: #1e3a8a; /* Fallback sólido */
+            background-image: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+            color: white;
+            padding: 30px 40px;
             text-align: center;
+            position: relative;
         }
-        .footer {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #e5e7eb;
+
+        .email-header::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background-image: url('data:image/svg+xml;charset=utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20" fill="rgba(255,255,255,0.1)"><polygon points="0,20 100,0 100,20"/></svg>');
+            background-repeat: repeat-x;
+            background-size: 100px 20px;
+        }
+
+        .logo-section {
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .logo {
+            width: 120px;
+            height: auto;
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .header-title {
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-title h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            margin-top: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title p {
+            font-size: 1rem;
+            margin: 0;
+            opacity: 0.95;
+        }
+
+        /* Contenido principal */
+        .email-content {
+            padding: 40px;
+        }
+
+        .greeting {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            color: #374151;
+        }
+
+        .greeting strong {
+            color: #1e3a8a;
+        }
+
+        .success-message {
+            background-color: #ecfdf5; /* Fallback */
+            background-image: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);
+            border: 1px solid #d1fae5;
+            border-left: 4px solid #10b981;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .success-message table {
+            width: 100%;
+        }
+
+        .success-icon {
+            background-color: #10b981;
+            color: white;
+            width: 32px;
+            height: 32px;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: bold;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .success-text {
+            font-weight: 600;
+            color: #065f46;
+            padding-left: 15px;
+            vertical-align: middle;
+        }
+
+        /* Caja de información - Con gradiente y efectos */
+        .info-box {
+            background-color: #f8fafc; /* Fallback */
+            background-image: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            border: 1px solid #e2e8f0;
+            border-top: 3px solid #3b82f6;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .info-box::before {
+            content: "";
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            height: 3px;
+            background-color: #3b82f6; /* Fallback */
+            background-image: linear-gradient(90deg, #3b82f6 0%, #1e3a8a 100%);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .info-box h3 {
+            color: #1e3a8a;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            margin-top: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .info-item {
+            margin-bottom: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+            transition: all 0.2s ease;
+        }
+
+        .info-item:hover {
+            background-color: rgba(59, 130, 246, 0.02);
+            border-radius: 6px;
+            padding: 12px 8px;
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-item table {
+            width: 100%;
+        }
+
+        .info-icon {
+            background-color: #3b82f6;
+            color: white;
+            width: 24px;
+            height: 24px;
+            text-align: center;
+            vertical-align: top;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+        }
+
+        .info-content {
+            padding-left: 15px;
+            vertical-align: top;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #4b5563;
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 1.05rem;
+            color: #1f2937;
+            font-weight: 500;
+        }
+
+        .info-value.highlight {
+            color: #1e3a8a;
+            font-weight: 700;
+            background-color: rgba(59, 130, 246, 0.1);
+            padding: 4px 8px;
+            font-family: monospace;
+            border-radius: 4px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            display: inline-block;
+        }
+
+        /* Sección de acceso - Con gradiente */
+        .access-section {
+            background-color: #eff6ff; /* Fallback */
+            background-image: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+        }
+
+        .access-section h3 {
+            color: #1e3a8a;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            margin-top: 0;
+        }
+
+        .access-section p {
+            color: #374151;
+            margin-bottom: 20px;
+        }
+
+        /* Botón CTA - Con gradiente y efectos */
+        .cta-button {
+            background-color: #3b82f6 !important; /* Fallback */
+            background-image: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%) !important;
+            color: #ffffff !important;
+            padding: 15px 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+            margin: 10px 0;
+            text-align: center;
+            display: inline-block;
+            min-width: 200px;
+            border: 2px solid #3b82f6;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background-color: #1e3a8a !important;
+            background-image: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%) !important;
+            border-color: #1e3a8a;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* URL alternativa - Con mejores estilos */
+        .url-fallback {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .url-fallback p {
             font-size: 0.875rem;
             color: #6b7280;
-            text-align: center;
+            margin-bottom: 8px;
         }
+
+        .url-text {
+            word-break: break-all;
+            font-size: 0.875rem;
+            color: #3b82f6;
+            font-family: monospace;
+            background-color: white;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Footer institucional - Con gradiente */
+        .email-footer {
+            background-color: #1f2937; /* Fallback */
+            background-image: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .email-footer::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background-image: url('data:image/svg+xml;charset=utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20" fill="rgba(255,255,255,0.05)"><polygon points="0,0 100,20 0,20"/></svg>');
+            background-repeat: repeat-x;
+            background-size: 100px 20px;
+        }
+
+        .footer-content {
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-content p {
+            margin-bottom: 8px;
+        }
+
+        .footer-divider {
+            width: 60px;
+            height: 2px;
+            background-color: #3b82f6;
+            background-image: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+            margin: 20px auto;
+            border-radius: 1px;
+        }
+
+        .institutional-info {
+            font-size: 0.875rem;
+            line-height: 1.5;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .institutional-info strong {
+            color: #93c5fd;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .email-header,
+            .email-content,
+            .email-footer {
+                padding: 25px 20px;
+            }
+
+            .logo {
+                width: 100px;
+            }
+
+            .header-title h1 {
+                font-size: 1.5rem;
+            }
+
+            .info-grid {
+                gap: 10px;
+            }
+
+            .info-item {
+                flex-direction: column;
+                gap: 8px;
+                text-align: left;
+            }
+
+            .cta-button {
+                display: block;
+                padding: 12px 20px;
+                font-size: 0.95rem;
+            }
+        }
+
+        /* Estados de prioridad */
+        .priority-alta { color: #dc2626; font-weight: 700; }
+        .priority-media { color: #d97706; font-weight: 600; }
+        .priority-baja { color: #059669; font-weight: 600; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h2>Confirmación de Radicación PQRS</h2>
-    </div>
-    
-    <div class="content">
-        <p>Estimado(a) <strong th:text="${nombreUsuario}">usuario</strong>,</p>
-        
-        <p>Su PQRS ha sido registrado exitosamente con los siguientes detalles:</p>
-        
-        <div class="info-box">
-            <div class="info-item">
-                <span class="info-label">N° Radicado:</span>
-                <strong th:text="${numeroRadicado}">RAD123</strong>
+    <div class="email-container">
+        <!-- Header institucional -->
+        <div class="email-header">
+            <div class="logo-section">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/f/f8/Logo_del_Ministerio_de_Trabajo_de_Colombia_2022-2026.png" 
+                     alt="Ministerio del Trabajo" class="logo">
             </div>
-            
-            <div class="info-item">
-                <span class="info-label">Título:</span>
-                <span th:text="${titulo}">Título de la PQRS</span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">Tema:</span>
-                <span th:text="${tema}">Tema de la PQRS</span>
-            </div>
-            
-            <div class="info-item">
-                <span class="info-label">Prioridad:</span>
-                <span th:text="${prioridad}">ALTA</span>
+            <div class="header-title">
+                <h1>Ministerio del Trabajo</h1>
+                <p>Sistema de Gestión de Solicitudes</p>
             </div>
         </div>
+        
+        <!-- Contenido principal -->
+        <div class="email-content">
+            <div class="greeting">
+                Estimado(a) <strong th:text="${nombreUsuario}">usuario</strong>,
+            </div>
+            
+            <div class="success-message">
+                <table cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                        <td class="success-icon">✓</td>
+                        <td class="success-text">
+                            Su Solicitud ha sido registrado exitosamente en nuestro sistema
+                        </td>
+                    </tr>
+                </table>
+            </div>
 
-        <p>Para realizar seguimiento a su solicitud, puede acceder mediante el siguiente enlace:</p>
+            <p style="color: #374151; margin-bottom: 25px;">
+                Hemos recibido su solicitud y ha sido asignado el siguiente número de radicado para su seguimiento:
+            </p>
+            
+            <!-- Información de la Solicitud -->
+            <div class="info-box">
+                <h3>📋 Detalles de su Solicitud</h3>
+                
+                <div class="info-item">
+                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                        <tr>
+                            <td class="info-icon">#</td>
+                            <td class="info-content">
+                                <div class="info-label">NÚMERO DE RADICADO</div>
+                                <div class="info-value highlight" th:text="${numeroRadicado}">RAD123</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="info-item">
+                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                        <tr>
+                            <td class="info-icon">📝</td>
+                            <td class="info-content">
+                                <div class="info-label">TÍTULO</div>
+                                <div class="info-value" th:text="${titulo}">Título de la Solicitud</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="info-item">
+                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                        <tr>
+                            <td class="info-icon">🏷️</td>
+                            <td class="info-content">
+                                <div class="info-label">TEMA</div>
+                                <div class="info-value" th:text="${tema}">Tema de la Solicitud</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                
+                <div class="info-item">
+                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                        <tr>
+                            <td class="info-icon">⚡</td>
+                            <td class="info-content">
+                                <div class="info-label">PRIORIDAD</div>
+                                <div class="info-value" 
+                                     th:text="${prioridad}" 
+                                     th:classappend="${prioridad == 'ALTA' ? 'priority-alta' : (prioridad == 'MEDIA' ? 'priority-media' : 'priority-baja')}">
+                                    ALTA
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sección de acceso -->
+            <div class="access-section">
+                <h3>🔍 Consulte el Estado de su Solicitud</h3>
+                <p>Para realizar seguimiento al estado y avance de su solicitud, puede acceder en cualquier momento mediante el siguiente enlace:</p>
+                
+                <table cellpadding="0" cellspacing="0" border="0" align="center">
+                    <tr>
+                        <td>
+                            <a th:href="${urlConsulta}" class="cta-button" style="background-color: #3b82f6 !important; background-image: linear-gradient(135deg, #3b82f6 0%, #1e3a8a 100%) !important; color: #ffffff !important; padding: 15px 30px; text-decoration: none; font-weight: 600; font-size: 1rem; text-align: center; display: inline-block; min-width: 200px; border: 2px solid #3b82f6; border-radius: 8px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+                                Consultar Estado de Solicitud
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- URL alternativa -->
+            <div class="url-fallback">
+                <p><strong>¿El botón no funciona?</strong> Copie y pegue el siguiente enlace en su navegador:</p>
+                <div class="url-text" th:text="${urlConsulta}">http://ejemplo.com</div>
+            </div>
+            
+            <p style="color: #374151; margin-top: 25px; font-weight: 500;">
+                Le mantendremos informado sobre el avance y resolución de su solicitud a través de este mismo correo electrónico.
+            </p>
+
+            <p style="color: #6b7280; font-size: 0.95rem; margin-top: 20px;">
+                <strong>Importante:</strong> Conserve este correo y el número de radicado para futuras consultas.
+            </p>
+        </div>
         
-        <a th:href="${urlConsulta}" class="button">Consultar PQRS</a>
-        
-        <p style="font-size: 0.875rem; color: #6b7280;">Si el botón no funciona, puede copiar y pegar el siguiente enlace en su navegador:</p>
-        <p style="word-break: break-all; font-size: 0.875rem; color: #6b7280;" th:text="${urlConsulta}">http://ejemplo.com</p>
-        
-        <p>Le mantendremos informado sobre el avance de su solicitud.</p>
-    </div>
-    
-    <div class="footer">
-        <p>Este es un mensaje automático, por favor no responda a este correo.</p>
-        <p>Sistema de Gestión de PQRS</p>
+        <!-- Footer institucional -->
+        <div class="email-footer">
+            <div class="footer-content">
+                <p><strong>Este es un mensaje automático</strong></p>
+                <p>Por favor no responda a este correo electrónico</p>
+            </div>
+            
+            <div class="footer-divider"></div>
+            
+            <div class="institutional-info">
+                <p><strong>Ministerio del Trabajo de Colombia</strong></p>
+                <p>Sistema de Gestión de Solicitudes</p>
+                <p style="margin-top: 10px; font-size: 0.8rem;">
+                    Comprometidos con la transparencia y el servicio al ciudadano
+                </p>
+            </div>
+        </div>
     </div>
 </body>
 </html>

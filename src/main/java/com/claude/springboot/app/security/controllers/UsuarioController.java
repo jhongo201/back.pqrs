@@ -3,7 +3,7 @@ package com.claude.springboot.app.security.controllers;
 import com.claude.springboot.app.security.annotations.PermitirLectura;
 import com.claude.springboot.app.security.annotations.PublicEndpoint;
 import com.claude.springboot.app.security.dto.ActualizarUsuarioLdapDTO;
-import com.claude.springboot.app.security.dto.PersonaDTO;
+
 import com.claude.springboot.app.security.dto.RegistroUsuarioDTO;
 import com.claude.springboot.app.security.dto.RegistroUsuarioLdapDTO;
 import com.claude.springboot.app.security.dto.RolResponseDTO;
