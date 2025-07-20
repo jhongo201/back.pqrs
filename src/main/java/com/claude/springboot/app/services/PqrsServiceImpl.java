@@ -534,6 +534,13 @@ private SeguimientoResponseDTO convertSeguimientoToDTO(SeguimientoPqrs seguimien
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<PqrsResponseDTO> listarPqrsSinAsignar(Pageable pageable) {
+        Page<Pqrs> paginatedPqrs = pqrsRepository.findByUsuarioAsignadoIsNull(pageable);
+        return paginatedPqrs.map(this::convertToResponseDTO);
+    }
+
     public Long obtenerSiguienteSecuencial() {
         LocalDateTime now = LocalDateTime.now();
         String prefijo = String.format("PQRS-%d-%02d", now.getYear(), now.getMonthValue());

@@ -275,11 +275,24 @@ public ResponseEntity<?> agregarSeguimiento(
 
     @GetMapping("/sin-asignar")
     @PermitirLectura
-    public ResponseEntity<?> listarPqrsSinAsignar() {
+    public ResponseEntity<?> listarPqrsSinAsignar(
+            @PageableDefault(size = 10, sort = "idPqrs", direction = Sort.Direction.DESC) Pageable pageable) {
         try {
-            return ResponseEntity.ok(pqrsService.listarPqrsSinAsignar());
+            Page<PqrsResponseDTO> paginatedResult = pqrsService.listarPqrsSinAsignar(pageable);
+            return ResponseEntity.ok(paginatedResult);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Error al listar PQRS sin asignar: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/sin-asignar-todos")
+    @PermitirLectura
+    public ResponseEntity<?> listarTodosPqrsSinAsignar() {
+        try {
+            List<PqrsResponseDTO> allPqrs = pqrsService.listarPqrsSinAsignar();
+            return ResponseEntity.ok(allPqrs);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "Error al listar todas las PQRS sin asignar: " + e.getMessage()));
         }
     }
 

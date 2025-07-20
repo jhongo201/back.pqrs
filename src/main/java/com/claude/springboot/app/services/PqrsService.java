@@ -30,6 +30,7 @@ public interface PqrsService {
     List<PqrsResponseDTO> listarPqrsUsuario();
     Page<PqrsResponseDTO> listarPqrsUsuario(Pageable pageable);
     List<PqrsResponseDTO> listarPqrsSinAsignar();
+    Page<PqrsResponseDTO> listarPqrsSinAsignar(Pageable pageable);
     Long obtenerSiguienteSecuencial();
     PqrsResponseDTO consultarPqrsPublico(String numeroRadicado, String token);
     PqrsResponseDTO agregarRespuestaSolicitante(String numeroRadicado, String token, RespuestaSolicitanteDTO dto);
