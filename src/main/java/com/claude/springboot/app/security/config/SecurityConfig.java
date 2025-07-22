@@ -56,6 +56,8 @@ public class SecurityConfig {
                     auth.requestMatchers("/api/pqrs/consulta/**").permitAll();
                     auth.requestMatchers("/api/pqrs/respuesta/**").permitAll();
                     auth.requestMatchers("/api/test/password/**").permitAll();
+                    auth.requestMatchers("/api/test/ldap-direct").permitAll();
+                    auth.requestMatchers("/api/test/ldap-config").permitAll();
                     auth.requestMatchers("/error").permitAll();
                     auth.requestMatchers("/api/docs/**").authenticated(); // Agregamos esta línea
                     auth.requestMatchers("/api/usuarios/test-auth").permitAll(); // Permitimos el endpoint de prueba
