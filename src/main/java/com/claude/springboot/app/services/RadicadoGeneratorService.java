@@ -22,7 +22,7 @@ public class RadicadoGeneratorService {
         String mes = String.format("%02d", now.getMonthValue());
         
         // Obtener el prefijo para el mes actual
-        String prefijo = String.format("PQRS-%s-%s", año, mes);
+        String prefijo = String.format("AMIRL-%s-%s", año, mes);
         
         // Obtener el último secuencial usando un query específico
       

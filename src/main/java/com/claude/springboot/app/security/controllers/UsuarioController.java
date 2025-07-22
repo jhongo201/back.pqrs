@@ -166,6 +166,9 @@ public class UsuarioController {
         }
     }
 
+    // TODO: Endpoint de activación deshabilitado temporalmente
+    // Los usuarios se registran activos de inmediato, no necesitan activación
+    /*
     @GetMapping("/activar/{tokenOCodigo}")
     @PublicEndpoint
     public ResponseEntity<?> activarCuenta(@PathVariable String tokenOCodigo) {
@@ -184,7 +187,11 @@ public class UsuarioController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+    */
 
+    // TODO: Endpoint de reenvío de activación deshabilitado temporalmente
+    // Los usuarios se registran activos de inmediato, no necesitan activación
+    /*
     @PostMapping("/reenviar-activacion")
     public ResponseEntity<?> reenviarActivacion(@RequestParam String username) {
         try {
@@ -232,6 +239,7 @@ public class UsuarioController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+    */
 
     @GetMapping("/{id}/info-completa")
     @PublicEndpoint

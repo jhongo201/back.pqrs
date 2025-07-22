@@ -366,12 +366,17 @@ public Usuario crear(UsuarioDTO usuarioDTO) {
             usuario.setPassword(passwordEncoder.encode(registroDTO.getPassword()));
             usuario.setPersona(persona);
             usuario.setRol(rol);
-            usuario.setEstado(false);
+            // TODO: Activación por email deshabilitada temporalmente
+            // usuario.setEstado(false); // Usuario inactivo hasta activación
+            usuario.setEstado(true); // Usuario activo inmediatamente
             usuario.setFechaCreacion(LocalDateTime.now());
 
             // Primero guardamos el usuario
             usuario = usuarioRepository.save(usuario); // Importante: guardar y obtener el usuario con ID
 
+            // TODO: Sistema de activación por email deshabilitado temporalmente
+            // Los usuarios se registran y quedan activos de inmediato
+            /*
             // Generar token y código de activación
             String token = UUID.randomUUID().toString();
             String codigo = generarCodigoActivacion();
@@ -392,6 +397,7 @@ public Usuario crear(UsuarioDTO usuarioDTO) {
                     token,
                     codigo,
                     usuario.getPersona().getNombres());
+            */
 
             return usuario;
         } catch (UserRegistrationException e) {
@@ -410,6 +416,16 @@ public Usuario crear(UsuarioDTO usuarioDTO) {
         return String.format("%06d", new Random().nextInt(999999));
     }
 
+    @Override
+    @Transactional
+    public void activarCuenta(String tokenOCodigo) {
+        // TODO: Método de activación deshabilitado temporalmente
+        // Los usuarios se registran activos de inmediato, no necesitan activación
+        throw new RuntimeException("La activación por email está deshabilitada. Los usuarios se registran activos de inmediato.");
+    }
+    
+    // TODO: Implementación original comentada para futura restauración
+    /*
     @Override
     @Transactional
     public void activarCuenta(String tokenOCodigo) {
@@ -460,6 +476,7 @@ public Usuario crear(UsuarioDTO usuarioDTO) {
             throw new RuntimeException("Error al activar la cuenta: " + e.getMessage());
         }
     }
+    */
 
     @Transactional(readOnly = true)
     public UsuarioInfoCompletaDTO obtenerInformacionCompleta(Long id) {
