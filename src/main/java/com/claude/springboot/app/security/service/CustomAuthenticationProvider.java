@@ -38,26 +38,46 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         log.debug("Intentando autenticar usuario: {}", username);
         
         try {
-            // Primero intentar autenticación local
-            Optional<Usuario> usuarioLocal = usuarioRepository.findByUsername(username);
-            if (usuarioLocal.isPresent()) {
-                Usuario usuario = usuarioLocal.get();
-                if (passwordEncoder.matches(password, usuario.getPassword())) {
-                    log.info("Autenticación local exitosa para: {}", username);
+            // Normalizar username para consistencia
+            String normalizedUsername = normalizeUsername(username);
+            log.debug("Username normalizado: {}", normalizedUsername);
+            
+            // Buscar usuario existente con múltiples formatos
+            Optional<Usuario> usuarioExistente = findExistingUser(username, normalizedUsername);
+            
+            if (usuarioExistente.isPresent()) {
+                Usuario usuario = usuarioExistente.get();
+                
+                // Si tiene contraseña local, intentar autenticación local
+                if (usuario.getPassword() != null && !usuario.getPassword().isEmpty()) {
+                    if (passwordEncoder.matches(password, usuario.getPassword())) {
+                        log.info("Autenticación local exitosa para: {}", usuario.getUsername());
+                        return createAuthenticationToken(usuario);
+                    }
+                }
+                
+                // Si es usuario LDAP o falla auth local, intentar LDAP
+                if (ldapService.authenticate(normalizedUsername, password)) {
+                    log.info("Autenticación LDAP exitosa para usuario existente: {}", normalizedUsername);
+                    
+                    // Actualizar username si es necesario para consistencia
+                    if (!usuario.getUsername().equals(normalizedUsername)) {
+                        log.info("Actualizando username de {} a {}", usuario.getUsername(), normalizedUsername);
+                        usuario.setUsername(normalizedUsername);
+                        usuario = usuarioRepository.save(usuario);
+                    }
+                    
                     return createAuthenticationToken(usuario);
                 }
-            }
-
-            // Si la autenticación local falla, intentar LDAP
-            String fullUsername = username + "@mintrabajo.loc";
-            if (ldapService.authenticate(fullUsername, password)) {
-                log.info("Autenticación LDAP exitosa para: {}", fullUsername);
-                
-                // Buscar o crear usuario local
-                Usuario usuario = usuarioRepository.findByUsername(fullUsername)
-                    .orElseGet(() -> createLocalUserFromLdap(fullUsername, password));
-
-                return createAuthenticationToken(usuario);
+            } else {
+                // Usuario no existe, intentar LDAP y crear si es exitoso
+                if (ldapService.authenticate(normalizedUsername, password)) {
+                    log.info("Autenticación LDAP exitosa para nuevo usuario: {}", normalizedUsername);
+                    
+                    // Crear usuario local
+                    Usuario nuevoUsuario = createLocalUserFromLdap(normalizedUsername);
+                    return createAuthenticationToken(nuevoUsuario);
+                }
             }
         } catch (Exception e) {
             log.error("Error en proceso de autenticación: {}", e.getMessage());
@@ -84,16 +104,69 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         );
     }
 
-    private Usuario createLocalUserFromLdap(String username, String password) {
-        log.debug("Creando usuario local desde LDAP: {}", username);
+    /**
+     * Normaliza el username para asegurar formato consistente
+     */
+    private String normalizeUsername(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("Username no puede ser nulo o vacío");
+        }
+        
+        // Si ya tiene dominio, devolverlo tal como está
+        if (username.contains("@")) {
+            return username.toLowerCase().trim();
+        }
+        
+        // Si no tiene dominio, agregarlo
+        return (username.toLowerCase().trim() + "@mintrabajo.loc");
+    }
+    
+    /**
+     * Busca usuario existente probando diferentes formatos de username
+     */
+    private Optional<Usuario> findExistingUser(String originalUsername, String normalizedUsername) {
+        // Buscar por username original
+        Optional<Usuario> usuario = usuarioRepository.findByUsername(originalUsername);
+        if (usuario.isPresent()) {
+            log.debug("Usuario encontrado con username original: {}", originalUsername);
+            return usuario;
+        }
+        
+        // Buscar por username normalizado
+        usuario = usuarioRepository.findByUsername(normalizedUsername);
+        if (usuario.isPresent()) {
+            log.debug("Usuario encontrado con username normalizado: {}", normalizedUsername);
+            return usuario;
+        }
+        
+        // Buscar por username sin dominio (si el normalizado lo tiene)
+        if (normalizedUsername.contains("@")) {
+            String usernameWithoutDomain = normalizedUsername.split("@")[0];
+            usuario = usuarioRepository.findByUsername(usernameWithoutDomain);
+            if (usuario.isPresent()) {
+                log.debug("Usuario encontrado con username sin dominio: {}", usernameWithoutDomain);
+                return usuario;
+            }
+        }
+        
+        log.debug("No se encontró usuario existente para: {} / {}", originalUsername, normalizedUsername);
+        return Optional.empty();
+    }
+    
+    /**
+     * Crea usuario local desde LDAP sin almacenar contraseña
+     */
+    private Usuario createLocalUserFromLdap(String normalizedUsername) {
+        log.info("Creando nuevo usuario local desde LDAP: {}", normalizedUsername);
+        
         Usuario usuario = new Usuario();
-        usuario.setUsername(username);
+        usuario.setUsername(normalizedUsername);
         usuario.setEstado(true);
         usuario.setFechaCreacion(LocalDateTime.now());
-        usuario.setPassword(passwordEncoder.encode(password));
+        usuario.setPassword(""); // Usuario LDAP, cadena vacía (BD no permite null)
         
         Rol rolDefault = rolRepository.findByNombre("USUARIO")
-            .orElseThrow(() -> new RuntimeException("Rol USER no encontrado"));
+            .orElseThrow(() -> new RuntimeException("Rol USUARIO no encontrado"));
         usuario.setRol(rolDefault);
         
         return usuarioRepository.save(usuario);

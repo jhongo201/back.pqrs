@@ -21,11 +21,11 @@ import com.claude.springboot.app.security.repositories.UsuarioRepository;
 import com.claude.springboot.app.security.service.EmailService;
 import com.claude.springboot.app.security.service.UsuarioService;
 
-import jakarta.validation.Valid;
-
 import com.claude.springboot.app.security.annotations.PermitirActualizar;
-import com.claude.springboot.app.security.annotations.PermitirEliminar;
 import com.claude.springboot.app.security.annotations.PermitirEscritura;
+import com.claude.springboot.app.security.annotations.PermitirEliminar;
+
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -33,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 
@@ -253,11 +254,17 @@ public class UsuarioController {
     @PermitirEscritura
     public ResponseEntity<?> registrarUsuarioLdap(@Valid @RequestBody RegistroUsuarioLdapDTO dto) {
         try {
-            String fullUsername = dto.getUsername();
+            // Normalizar username para consistencia
+            String normalizedUsername = normalizeUsernameForRegistration(dto.getUsername());
+            log.info("Registrando usuario LDAP: {} -> {}", dto.getUsername(), normalizedUsername);
 
-            // Verificar si ya existe
-            if (usuarioRepository.existsByUsername(fullUsername)) {
-                throw new RuntimeException("El usuario ya está registrado en el sistema");
+            // Verificar si ya existe con múltiples formatos
+            Optional<Usuario> usuarioExistente = findExistingUserForRegistration(dto.getUsername(), normalizedUsername);
+            if (usuarioExistente.isPresent()) {
+                Usuario existente = usuarioExistente.get();
+                throw new RuntimeException(String.format(
+                    "El usuario ya está registrado en el sistema con ID: %d y username: %s", 
+                    existente.getIdUsuario(), existente.getUsername()));
             }
 
             // Obtener el rol
@@ -266,18 +273,22 @@ public class UsuarioController {
 
             // Crear el usuario
             Usuario usuario = new Usuario();
-            usuario.setUsername(fullUsername);
+            usuario.setUsername(normalizedUsername); // Usar username normalizado
             usuario.setEstado(dto.getEstado());
             usuario.setRol(rol);
             usuario.setFechaCreacion(LocalDateTime.now());
-            usuario.setPassword(""); // Usuario LDAP, no necesita contraseña local
+            usuario.setPassword(""); // Usuario LDAP, cadena vacía (BD no permite null)
 
             usuario = usuarioRepository.save(usuario);
+            log.info("Usuario LDAP creado exitosamente con ID: {} y username: {}", 
+                    usuario.getIdUsuario(), usuario.getUsername());
 
             // Crear DTO de respuesta
             Map<String, Object> response = new HashMap<>();
             response.put("mensaje", "Usuario LDAP registrado exitosamente");
             response.put("usuario", convertToResponseDTO(usuario));
+            response.put("usernameOriginal", dto.getUsername());
+            response.put("usernameNormalizado", normalizedUsername);
 
             return ResponseEntity.ok(response);
 
@@ -289,6 +300,55 @@ public class UsuarioController {
 
             return ResponseEntity.badRequest().body(response);
         }
+    }
+
+    /**
+     * Normaliza el username para registro manual de usuarios LDAP
+     */
+    private String normalizeUsernameForRegistration(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new IllegalArgumentException("Username no puede ser nulo o vacío");
+        }
+        
+        // Si ya tiene dominio, devolverlo tal como está
+        if (username.contains("@")) {
+            return username.toLowerCase().trim();
+        }
+        
+        // Si no tiene dominio, agregarlo
+        return (username.toLowerCase().trim() + "@mintrabajo.loc");
+    }
+    
+    /**
+     * Busca usuario existente para evitar duplicados en registro
+     */
+    private Optional<Usuario> findExistingUserForRegistration(String originalUsername, String normalizedUsername) {
+        // Buscar por username original
+        Optional<Usuario> usuario = usuarioRepository.findByUsername(originalUsername);
+        if (usuario.isPresent()) {
+            log.debug("Usuario encontrado con username original: {}", originalUsername);
+            return usuario;
+        }
+        
+        // Buscar por username normalizado
+        usuario = usuarioRepository.findByUsername(normalizedUsername);
+        if (usuario.isPresent()) {
+            log.debug("Usuario encontrado con username normalizado: {}", normalizedUsername);
+            return usuario;
+        }
+        
+        // Buscar por username sin dominio (si el normalizado lo tiene)
+        if (normalizedUsername.contains("@")) {
+            String usernameWithoutDomain = normalizedUsername.split("@")[0];
+            usuario = usuarioRepository.findByUsername(usernameWithoutDomain);
+            if (usuario.isPresent()) {
+                log.debug("Usuario encontrado con username sin dominio: {}", usernameWithoutDomain);
+                return usuario;
+            }
+        }
+        
+        log.debug("No se encontró usuario existente para: {} / {}", originalUsername, normalizedUsername);
+        return Optional.empty();
     }
 
     private UsuarioLdapResponseDTO convertToResponseDTO(Usuario usuario) {
