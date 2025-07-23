@@ -35,5 +35,9 @@ public interface UsuarioService {
     List<UsuarioResponseDTO> obtenerUsuariosPorArea(Long areaId);
     Map<String, Object> getDashboardStats();
     
+    // Métodos para restablecimiento de contraseña
+    void solicitarRestablecimientoPassword(String email);
+    void restablecerPassword(String token, String nuevaPassword);
+    boolean validarTokenRestablecimiento(String token);
 
 }

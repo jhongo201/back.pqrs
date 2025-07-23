@@ -10,6 +10,8 @@ import com.claude.springboot.app.security.dto.RolResponseDTO;
 import com.claude.springboot.app.security.dto.UsuarioDTO;
 import com.claude.springboot.app.security.dto.UsuarioInfoCompletaDTO;
 import com.claude.springboot.app.security.dto.UsuarioLdapResponseDTO;
+import com.claude.springboot.app.security.dto.SolicitudRestablecimientoDTO;
+import com.claude.springboot.app.security.dto.RestablecerPasswordDTO;
 import com.claude.springboot.app.security.entities.Rol;
 import com.claude.springboot.app.security.entities.TokenActivacion;
 import com.claude.springboot.app.security.entities.Usuario;
@@ -549,5 +551,105 @@ public class UsuarioController {
     
     return ResponseEntity.ok(usuarioInfo);
 }
+
+    // ========== ENDPOINTS PARA RESTABLECIMIENTO DE CONTRASEÑA ==========
+    
+    @PostMapping("/solicitar-restablecimiento")
+    public ResponseEntity<Map<String, Object>> solicitarRestablecimiento(
+            @Valid @RequestBody SolicitudRestablecimientoDTO solicitud) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            log.info("Solicitud de restablecimiento de contraseña para email: {}", solicitud.getEmail());
+            
+            usuarioService.solicitarRestablecimientoPassword(solicitud.getEmail());
+            
+            response.put("success", true);
+            response.put("message", "Se ha enviado un email con las instrucciones para restablecer su contraseña");
+            response.put("timestamp", LocalDateTime.now());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("Error en solicitud de restablecimiento: {}", e.getMessage());
+            
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            response.put("timestamp", LocalDateTime.now());
+            
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    @PostMapping("/restablecer-password")
+    public ResponseEntity<Map<String, Object>> restablecerPassword(
+            @Valid @RequestBody RestablecerPasswordDTO restablecimiento) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            log.info("Restableciendo contraseña con token: {}", 
+                restablecimiento.getToken().substring(0, 8) + "...");
+            
+            // Validar que las contraseñas coincidan
+            if (!restablecimiento.getNuevaPassword().equals(restablecimiento.getConfirmarPassword())) {
+                response.put("success", false);
+                response.put("message", "Las contraseñas no coinciden");
+                response.put("timestamp", LocalDateTime.now());
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            usuarioService.restablecerPassword(
+                restablecimiento.getToken(), 
+                restablecimiento.getNuevaPassword()
+            );
+            
+            response.put("success", true);
+            response.put("message", "Contraseña restablecida exitosamente");
+            response.put("timestamp", LocalDateTime.now());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("Error al restablecer contraseña: {}", e.getMessage());
+            
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            response.put("timestamp", LocalDateTime.now());
+            
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+    
+    @GetMapping("/validar-token-restablecimiento/{token}")
+    public ResponseEntity<Map<String, Object>> validarTokenRestablecimiento(
+            @PathVariable String token) {
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            log.debug("Validando token de restablecimiento: {}", token.substring(0, 8) + "...");
+            
+            boolean valido = usuarioService.validarTokenRestablecimiento(token);
+            
+            response.put("success", true);
+            response.put("valido", valido);
+            response.put("message", valido ? "Token válido" : "Token inválido o expirado");
+            response.put("timestamp", LocalDateTime.now());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("Error al validar token: {}", e.getMessage());
+            
+            response.put("success", false);
+            response.put("valido", false);
+            response.put("message", "Error al validar el token");
+            response.put("timestamp", LocalDateTime.now());
+            
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 
 }

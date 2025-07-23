@@ -31,6 +31,8 @@ import com.claude.springboot.app.security.repositories.EmpresaRepository;
 import com.claude.springboot.app.security.repositories.PersonaRepository;
 import com.claude.springboot.app.security.repositories.RolRepository;
 import com.claude.springboot.app.security.repositories.TokenActivacionRepository;
+import com.claude.springboot.app.security.repositories.TokenRestablecimientoRepository;
+import com.claude.springboot.app.security.entities.TokenRestablecimiento;
 import com.claude.springboot.app.security.repositories.UsuarioRepository;
 import com.claude.springboot.app.entities.Municipio;
 import com.claude.springboot.app.repositories.MunicipioRepository;
@@ -39,6 +41,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -58,6 +61,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final EmpresaRepository empresaRepository;
     private final MunicipioRepository municipioRepository;
     private final TokenActivacionRepository tokenActivacionRepository;
+    private final TokenRestablecimientoRepository tokenRestablecimientoRepository;
     private final EmailService emailService;
     private final PqrsRepository pqrsRepository;
 
@@ -719,6 +723,135 @@ public Usuario crear(UsuarioDTO usuarioDTO) {
         stats.put("porEstado", porEstado);
 
         return stats;
+    }
+
+    // ========== MÉTODOS PARA RESTABLECIMIENTO DE CONTRASEÑA ==========
+    
+    @Override
+    @Transactional
+    public void solicitarRestablecimientoPassword(String email) {
+        try {
+            log.info("Solicitando restablecimiento de contraseña para email: {}", email);
+            
+            // Buscar usuario por email
+            Usuario usuario = usuarioRepository.findByPersonaEmail(email)
+                .orElseThrow(() -> new RuntimeException("No se encontró un usuario con el email proporcionado"));
+            
+            // Verificar que el usuario esté activo
+            if (!usuario.isEstado()) {
+                throw new RuntimeException("La cuenta de usuario está inactiva");
+            }
+            
+            // Verificar si ya existe un token válido para este usuario
+            if (tokenRestablecimientoRepository.existeTokenValidoParaUsuario(usuario, LocalDateTime.now())) {
+                throw new RuntimeException("Ya existe una solicitud de restablecimiento activa. Revise su email o espere a que expire.");
+            }
+            
+            // Desactivar tokens anteriores del usuario
+            tokenRestablecimientoRepository.desactivarTokensDelUsuario(usuario);
+            
+            // Generar nuevo token y código
+            String token = UUID.randomUUID().toString();
+            String codigo = String.format("%06d", new Random().nextInt(999999));
+            
+            // Crear y guardar token de restablecimiento
+            TokenRestablecimiento tokenRestablecimiento = new TokenRestablecimiento();
+            tokenRestablecimiento.setToken(token);
+            tokenRestablecimiento.setCodigoRestablecimiento(codigo);
+            tokenRestablecimiento.setUsuario(usuario);
+            tokenRestablecimiento.setFechaCreacion(LocalDateTime.now());
+            tokenRestablecimiento.setFechaExpiracion(LocalDateTime.now().plusHours(1));
+            tokenRestablecimiento.setEstado(true);
+            tokenRestablecimiento.setUsado(false);
+            
+            tokenRestablecimientoRepository.save(tokenRestablecimiento);
+            
+            // Enviar email de restablecimiento
+            emailService.enviarEmailRestablecimiento(
+                email, 
+                token, 
+                codigo, 
+                usuario.getPersona().getNombres()
+            );
+            
+            log.info("Email de restablecimiento enviado exitosamente a: {}", email);
+            
+        } catch (Exception e) {
+            log.error("Error al solicitar restablecimiento de contraseña: {}", e.getMessage());
+            throw new RuntimeException("Error al procesar la solicitud de restablecimiento: " + e.getMessage());
+        }
+    }
+    
+    @Override
+    @Transactional
+    public void restablecerPassword(String token, String nuevaPassword) {
+        try {
+            log.info("Restableciendo contraseña con token: {}", token.substring(0, 8) + "...");
+            
+            // Buscar token válido
+            TokenRestablecimiento tokenRestablecimiento = tokenRestablecimientoRepository
+                .findByTokenAndEstadoTrueAndUsadoFalse(token)
+                .orElseThrow(() -> new RuntimeException("Token de restablecimiento inválido o expirado"));
+            
+            // Verificar que no haya expirado
+            if (LocalDateTime.now().isAfter(tokenRestablecimiento.getFechaExpiracion())) {
+                throw new RuntimeException("El token de restablecimiento ha expirado");
+            }
+            
+            // Obtener usuario
+            Usuario usuario = tokenRestablecimiento.getUsuario();
+            
+            // Verificar que el usuario esté activo
+            if (!usuario.isEstado()) {
+                throw new RuntimeException("La cuenta de usuario está inactiva");
+            }
+            
+            // Actualizar contraseña
+            usuario.setPassword(passwordEncoder.encode(nuevaPassword));
+            usuarioRepository.save(usuario);
+            
+            // Marcar token como usado
+            tokenRestablecimiento.setUsado(true);
+            tokenRestablecimiento.setFechaUso(LocalDateTime.now());
+            tokenRestablecimientoRepository.save(tokenRestablecimiento);
+            
+            // Desactivar todos los demás tokens del usuario
+            tokenRestablecimientoRepository.desactivarTokensDelUsuario(usuario);
+            
+            log.info("Contraseña restablecida exitosamente para usuario: {}", usuario.getUsername());
+            
+        } catch (Exception e) {
+            log.error("Error al restablecer contraseña: {}", e.getMessage());
+            throw new RuntimeException("Error al restablecer la contraseña: " + e.getMessage());
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public boolean validarTokenRestablecimiento(String token) {
+        try {
+            log.debug("Validando token de restablecimiento: {}", token.substring(0, 8) + "...");
+            
+            Optional<TokenRestablecimiento> tokenOpt = tokenRestablecimientoRepository
+                .findByTokenAndEstadoTrueAndUsadoFalse(token);
+            
+            if (tokenOpt.isEmpty()) {
+                return false;
+            }
+            
+            TokenRestablecimiento tokenRestablecimiento = tokenOpt.get();
+            
+            // Verificar que no haya expirado
+            boolean valido = LocalDateTime.now().isBefore(tokenRestablecimiento.getFechaExpiracion()) 
+                && tokenRestablecimiento.getUsuario().isEstado();
+            
+            log.debug("Token válido: {}", valido);
+            return valido;
+            
+        } catch (Exception e) {
+            log.error("Error al validar token de restablecimiento: {}", e.getMessage());
+            return false;
+        }
     }
 
 }

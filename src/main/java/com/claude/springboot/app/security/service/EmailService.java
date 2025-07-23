@@ -235,5 +235,37 @@ public class EmailService {
         }
     }
 
+    public void enviarEmailRestablecimiento(String to, String token, String codigo, String nombre) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            helper.setFrom(fromEmail);
+            helper.setTo(to);
+            helper.setSubject("Restablecimiento de contraseña");
+    
+            // Crear contexto para el template
+            Context context = new Context();
+            context.setVariable("nombre", nombre);
+            context.setVariable("token", token);
+            context.setVariable("codigo", codigo);
+            context.setVariable("urlRestablecimiento", frontendUrl + "/reset-password/" + token);
+            context.setVariable("fechaExpiracion", 
+                LocalDateTime.now().plusHours(1).format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
+            
+            // Procesar el template
+            String contenido = templateEngine.process("restablecimiento-password", context);
+            
+            helper.setText(contenido, true);
+            mailSender.send(message);
+            
+            log.info("Email de restablecimiento enviado a: {}", to);
+            
+        } catch (Exception e) {
+            log.error("Error enviando email de restablecimiento: {}", e.getMessage());
+            throw new RuntimeException("Error al enviar email de restablecimiento: " + e.getMessage());
+        }
+    }
+
 
 }
