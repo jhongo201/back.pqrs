@@ -59,7 +59,6 @@ public class SecurityConfig {
                     auth.requestMatchers("/api/test/ldap-direct").permitAll();
                     auth.requestMatchers("/api/test/ldap-config").permitAll();
                     auth.requestMatchers("/error").permitAll();
-                    auth.requestMatchers("/api/docs/**").authenticated(); // Agregamos esta línea
                     auth.requestMatchers("/api/usuarios/test-auth").permitAll(); // Permitimos el endpoint de prueba
                     // auth.requestMatchers("/api/usuarios/activar/{tokenOCodigo}").permitAll(); //
                     // Permitimos el endpoint de prueba
@@ -68,8 +67,9 @@ public class SecurityConfig {
                     rutaServiceImpl.obtenerRutasPublicas()
                             .forEach(ruta -> auth.requestMatchers(ruta).permitAll());
 
-                    // Permitir swagger si lo estás usando
-                    auth.requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll();
+                    // Actuator endpoints para información del sistema
+                    auth.requestMatchers("/actuator/health", "/actuator/info").permitAll();
+                    auth.requestMatchers("/actuator/mappings").authenticated();
                     // Todo lo demás requiere autenticación
                     auth.anyRequest().authenticated();
                 })

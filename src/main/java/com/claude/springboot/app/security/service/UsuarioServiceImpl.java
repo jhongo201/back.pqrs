@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.claude.springboot.app.dto.UsuarioResponseDTO;
 import com.claude.springboot.app.repositories.PqrsRepository;
 import com.claude.springboot.app.security.dto.ActualizarUsuarioLdapDTO;
-import com.claude.springboot.app.security.dto.PersonaDTO;
+
 import com.claude.springboot.app.security.dto.RegistroUsuarioDTO;
 import com.claude.springboot.app.security.dto.RegistroUsuarioLdapDTO;
 import com.claude.springboot.app.security.dto.UsuarioDTO;
@@ -21,10 +21,10 @@ import com.claude.springboot.app.security.entities.Empresa;
 import com.claude.springboot.app.security.entities.Persona;
 import com.claude.springboot.app.security.entities.Rol;
 import com.claude.springboot.app.security.entities.Territorial;
-import com.claude.springboot.app.security.entities.TokenActivacion;
+
 import com.claude.springboot.app.security.entities.Usuario;
 import com.claude.springboot.app.security.exception.UserRegistrationException;
-import com.claude.springboot.app.security.exception.UsernameExistsException;
+
 import com.claude.springboot.app.security.exception.UsuarioNotFoundException;
 import com.claude.springboot.app.security.repositories.AreaRepository;
 import com.claude.springboot.app.security.repositories.EmpresaRepository;
@@ -553,32 +553,159 @@ public Usuario crear(UsuarioDTO usuarioDTO) {
         return dto;
     }
 
+    /**
+     * Método auxiliar para normalizar username en registro manual
+     */
+    private String normalizeUsernameForRegistration(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new RuntimeException("Username no puede ser nulo o vacío");
+        }
+        
+        String normalized = username.trim().toLowerCase();
+        if (!normalized.contains("@")) {
+            normalized += "@mintrabajo.loc";
+        }
+        
+        log.debug("Username normalizado de '{}' a '{}'", username, normalized);
+        return normalized;
+    }
+    
+    /**
+     * Método auxiliar para buscar usuario existente con múltiples formatos
+     */
+    private Optional<Usuario> findExistingUserForRegistration(String normalizedUsername) {
+        // Buscar con el username normalizado
+        Optional<Usuario> usuario = usuarioRepository.findByUsername(normalizedUsername);
+        if (usuario.isPresent()) {
+            return usuario;
+        }
+        
+        // Buscar sin dominio
+        String usernameWithoutDomain = normalizedUsername.split("@")[0];
+        usuario = usuarioRepository.findByUsername(usernameWithoutDomain);
+        if (usuario.isPresent()) {
+            return usuario;
+        }
+        
+        // Buscar con formato original (sin normalizar)
+        String originalFormat = normalizedUsername.replace("@mintrabajo.loc", "");
+        usuario = usuarioRepository.findByUsername(originalFormat);
+        
+        return usuario;
+    }
+
+    /**
+     * Método auxiliar para generar email desde username
+     */
+    private String generateEmailFromUsername(String username) {
+        // Si ya tiene @mintrabajo.loc, cambiar a @mintrabajo.gov.co
+        if (username.contains("@mintrabajo.loc")) {
+            return username.replace("@mintrabajo.loc", "@mintrabajo.gov.co");
+        }
+        // Si no tiene dominio, agregar @mintrabajo.gov.co
+        if (!username.contains("@")) {
+            return username + "@mintrabajo.gov.co";
+        }
+        // Si ya tiene otro dominio, devolverlo tal como está
+        return username;
+    }
+
     @Transactional
     public Usuario registrarUsuarioLdap(RegistroUsuarioLdapDTO dto) {
-        // Verificar si el usuario existe en LDAP
-        String username = dto.getUsername(); // Ahora recibimos solo el nombre de usuario sin dominio
-    log.debug("Registrando usuario LDAP: {}", username);
+        log.info("Registrando usuario LDAP: {} con área: {}", dto.getUsername(), dto.getIdArea());
         
-
+        // Normalizar username
+        String normalizedUsername = normalizeUsernameForRegistration(dto.getUsername());
+        
         // Verificar si ya existe en la base de datos local
-        if (usuarioRepository.existsByUsername(username)) {
-            throw new RuntimeException("El usuario ya está registrado en el sistema");
+        Optional<Usuario> existingUser = findExistingUserForRegistration(normalizedUsername);
+        if (existingUser.isPresent()) {
+            throw new RuntimeException("El usuario ya está registrado en el sistema: " + normalizedUsername);
         }
+
+        // Validar que el área existe
+        Area area = areaRepository.findById(dto.getIdArea())
+                .orElseThrow(() -> new RuntimeException("Área no encontrada con ID: " + dto.getIdArea()));
 
         // Obtener el rol
         Rol rol = rolRepository.findById(dto.getIdRol())
-                .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
+                .orElseThrow(() -> new RuntimeException("Rol no encontrado con ID: " + dto.getIdRol()));
 
-        // Crear el usuario local
-        Usuario usuario = new Usuario();
-        usuario.setUsername(username); // Guardamos sin el dominio
-        usuario.setEstado(dto.getEstado());
-        usuario.setRol(rol);
-        usuario.setFechaCreacion(LocalDateTime.now());
-        // Establecer una contraseña temporal o hash
-        usuario.setPassword(UUID.randomUUID().toString());
+        // Validar municipio si se proporciona (el ID es String)
+        Municipio municipio = null;
+        if (dto.getIdMunicipio() != null) {
+            municipio = municipioRepository.findById(dto.getIdMunicipio().toString())
+                    .orElseThrow(() -> new RuntimeException("Municipio no encontrado con ID: " + dto.getIdMunicipio()));
+        }
 
-        return usuarioRepository.save(usuario);
+        // Validar empresa: usar la proporcionada o asignar empresa por defecto (ID=1) para usuarios LDAP
+        Empresa empresa = null;
+        Long empresaId = dto.getIdEmpresa() != null ? dto.getIdEmpresa() : 1L; // Empresa por defecto para LDAP
+        empresa = empresaRepository.findById(empresaId)
+                .orElseThrow(() -> new RuntimeException("Empresa no encontrada con ID: " + empresaId));
+
+        try {
+            // Generar email automáticamente si no se proporciona
+            String email = dto.getEmail();
+            if (email == null || email.trim().isEmpty()) {
+                email = generateEmailFromUsername(dto.getUsername());
+                log.debug("Email generado automáticamente: {}", email);
+            }
+
+            // Crear la Persona primero
+            Persona persona = new Persona();
+            // Usar los campos específicos de nombres y apellidos
+            persona.setPrimerNombre(dto.getPrimerNombre());
+            persona.setOtrosNombres(dto.getOtrosNombres()); // Puede ser null
+            persona.setPrimerApellido(dto.getPrimerApellido());
+            persona.setSegundoApellido(dto.getSegundoApellido()); // Puede ser null
+            
+            // También llenar los campos legacy para compatibilidad
+            persona.setNombres(dto.getPrimerNombre() + (dto.getOtrosNombres() != null ? " " + dto.getOtrosNombres() : ""));
+            persona.setApellidos(dto.getPrimerApellido() + (dto.getSegundoApellido() != null ? " " + dto.getSegundoApellido() : ""));
+            persona.setEmail(email);
+            persona.setNumeroDocumento(dto.getNumeroDocumento()); // Puede ser null
+            
+            // Tipo de documento: usar el proporcionado o null para usuarios LDAP
+            if (dto.getIdTipoDocumento() != null) {
+                persona.setTipoDocumento(dto.getIdTipoDocumento().toString());
+            } else {
+                persona.setTipoDocumento(null); // NULL para usuarios LDAP
+                log.debug("Tipo de documento asignado como NULL para usuario LDAP");
+            }
+            
+            persona.setArea(area);
+            persona.setTelefono(dto.getTelefono()); // Puede ser null
+            persona.setMunicipio(municipio); // Puede ser null
+            persona.setEmpresa(empresa); // Empresa por defecto (ID=1) para usuarios LDAP
+            persona.setEstado(true);
+            persona.setFechaCreacion(LocalDateTime.now());
+            
+            // Guardar la persona
+            persona = personaRepository.save(persona);
+            log.info("Persona creada con ID: {} para usuario LDAP: {} con email: {} y empresa: {}", 
+                    persona.getIdPersona(), normalizedUsername, email, 
+                    empresa != null ? empresa.getIdEmpresa() : "null");
+
+            // Crear el usuario local con la persona asociada
+            Usuario usuario = new Usuario();
+            usuario.setUsername(normalizedUsername);
+            usuario.setPassword(""); // Cadena vacía para usuarios LDAP
+            usuario.setPersona(persona);
+            usuario.setRol(rol);
+            usuario.setEstado(dto.getEstado());
+            usuario.setFechaCreacion(LocalDateTime.now());
+
+            usuario = usuarioRepository.save(usuario);
+            log.info("Usuario LDAP creado exitosamente: {} con ID: {} y área: {}", 
+                    normalizedUsername, usuario.getIdUsuario(), area.getNombre());
+            
+            return usuario;
+            
+        } catch (Exception e) {
+            log.error("Error al registrar usuario LDAP: {}", normalizedUsername, e);
+            throw new RuntimeException("Error al registrar usuario LDAP: " + e.getMessage());
+        }
     }
 
 

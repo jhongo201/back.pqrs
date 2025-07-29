@@ -3,7 +3,7 @@ package com.claude.springboot.app.security.controllers;
 import com.claude.springboot.app.security.annotations.PermitirLectura;
 import com.claude.springboot.app.security.annotations.PublicEndpoint;
 import com.claude.springboot.app.security.dto.ActualizarUsuarioLdapDTO;
-import com.claude.springboot.app.security.dto.PersonaDTO;
+
 import com.claude.springboot.app.security.dto.RegistroUsuarioDTO;
 import com.claude.springboot.app.security.dto.RegistroUsuarioLdapDTO;
 import com.claude.springboot.app.security.dto.RolResponseDTO;
@@ -33,9 +33,9 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Random;
-import java.util.UUID;
+
+
+
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -254,41 +254,25 @@ public class UsuarioController {
     @PermitirEscritura
     public ResponseEntity<?> registrarUsuarioLdap(@Valid @RequestBody RegistroUsuarioLdapDTO dto) {
         try {
-            // Normalizar username para consistencia
-            String normalizedUsername = normalizeUsernameForRegistration(dto.getUsername());
-            log.info("Registrando usuario LDAP: {} -> {}", dto.getUsername(), normalizedUsername);
+            log.info("Registrando usuario LDAP: {} con área: {}", dto.getUsername(), dto.getIdArea());
 
-            // Verificar si ya existe con múltiples formatos
-            Optional<Usuario> usuarioExistente = findExistingUserForRegistration(dto.getUsername(), normalizedUsername);
-            if (usuarioExistente.isPresent()) {
-                Usuario existente = usuarioExistente.get();
-                throw new RuntimeException(String.format(
-                    "El usuario ya está registrado en el sistema con ID: %d y username: %s", 
-                    existente.getIdUsuario(), existente.getUsername()));
-            }
-
-            // Obtener el rol
-            Rol rol = rolRepository.findById(dto.getIdRol())
-                    .orElseThrow(() -> new RuntimeException("Rol no encontrado"));
-
-            // Crear el usuario
-            Usuario usuario = new Usuario();
-            usuario.setUsername(normalizedUsername); // Usar username normalizado
-            usuario.setEstado(dto.getEstado());
-            usuario.setRol(rol);
-            usuario.setFechaCreacion(LocalDateTime.now());
-            usuario.setPassword(""); // Usuario LDAP, cadena vacía (BD no permite null)
-
-            usuario = usuarioRepository.save(usuario);
-            log.info("Usuario LDAP creado exitosamente con ID: {} y username: {}", 
-                    usuario.getIdUsuario(), usuario.getUsername());
+            // Usar el servicio mejorado que incluye creación de Persona con área
+            Usuario usuario = usuarioService.registrarUsuarioLdap(dto);
 
             // Crear DTO de respuesta
             Map<String, Object> response = new HashMap<>();
-            response.put("mensaje", "Usuario LDAP registrado exitosamente");
+            response.put("mensaje", "Usuario LDAP registrado exitosamente con área asignada");
             response.put("usuario", convertToResponseDTO(usuario));
             response.put("usernameOriginal", dto.getUsername());
-            response.put("usernameNormalizado", normalizedUsername);
+            response.put("usernameNormalizado", usuario.getUsername());
+            
+            // Incluir información del área si existe
+            if (usuario.getPersona() != null && usuario.getPersona().getArea() != null) {
+                response.put("area", Map.of(
+                    "idArea", usuario.getPersona().getArea().getIdArea(),
+                    "nombre", usuario.getPersona().getArea().getNombre()
+                ));
+            }
 
             return ResponseEntity.ok(response);
 
@@ -302,54 +286,7 @@ public class UsuarioController {
         }
     }
 
-    /**
-     * Normaliza el username para registro manual de usuarios LDAP
-     */
-    private String normalizeUsernameForRegistration(String username) {
-        if (username == null || username.trim().isEmpty()) {
-            throw new IllegalArgumentException("Username no puede ser nulo o vacío");
-        }
-        
-        // Si ya tiene dominio, devolverlo tal como está
-        if (username.contains("@")) {
-            return username.toLowerCase().trim();
-        }
-        
-        // Si no tiene dominio, agregarlo
-        return (username.toLowerCase().trim() + "@mintrabajo.loc");
-    }
-    
-    /**
-     * Busca usuario existente para evitar duplicados en registro
-     */
-    private Optional<Usuario> findExistingUserForRegistration(String originalUsername, String normalizedUsername) {
-        // Buscar por username original
-        Optional<Usuario> usuario = usuarioRepository.findByUsername(originalUsername);
-        if (usuario.isPresent()) {
-            log.debug("Usuario encontrado con username original: {}", originalUsername);
-            return usuario;
-        }
-        
-        // Buscar por username normalizado
-        usuario = usuarioRepository.findByUsername(normalizedUsername);
-        if (usuario.isPresent()) {
-            log.debug("Usuario encontrado con username normalizado: {}", normalizedUsername);
-            return usuario;
-        }
-        
-        // Buscar por username sin dominio (si el normalizado lo tiene)
-        if (normalizedUsername.contains("@")) {
-            String usernameWithoutDomain = normalizedUsername.split("@")[0];
-            usuario = usuarioRepository.findByUsername(usernameWithoutDomain);
-            if (usuario.isPresent()) {
-                log.debug("Usuario encontrado con username sin dominio: {}", usernameWithoutDomain);
-                return usuario;
-            }
-        }
-        
-        log.debug("No se encontró usuario existente para: {} / {}", originalUsername, normalizedUsername);
-        return Optional.empty();
-    }
+
 
     private UsuarioLdapResponseDTO convertToResponseDTO(Usuario usuario) {
         UsuarioLdapResponseDTO dto = new UsuarioLdapResponseDTO();

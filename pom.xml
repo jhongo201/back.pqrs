@@ -9,10 +9,11 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.claude.springboot.app</groupId>
-	<artifactId>pqrs-backend</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>pqrs-system</name>
-    <description>Sistema de PQRS</description>
+	<artifactId>soporte-mst</artifactId>
+	<version>1.0.0</version>
+	<packaging>war</packaging>
+	<name>soporte-mst</name>
+    <description>Sistema de Soporte Técnico</description>
     
     <properties>
         <java.version>17</java.version>
@@ -32,6 +33,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -69,6 +75,12 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
+        </dependency>
+        
+        <!-- Spring Boot Actuator para endpoints de información -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         
         <!-- Test Dependencies -->

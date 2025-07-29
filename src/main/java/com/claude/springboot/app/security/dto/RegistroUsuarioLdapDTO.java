@@ -18,4 +18,27 @@ public class RegistroUsuarioLdapDTO {
     
     @NotNull(message = "El estado es requerido")
     private Boolean estado;
+    
+    // Campos mínimos requeridos para crear la Persona asociada
+    @NotEmpty(message = "El primer nombre es requerido")
+    private String primerNombre;
+    
+    private String otrosNombres; // Opcional
+    
+    @NotEmpty(message = "El primer apellido es requerido")
+    private String primerApellido;
+    
+    private String segundoApellido; // Opcional
+    
+    @NotNull(message = "El área es requerida")
+    private Long idArea;
+    
+    // Campos opcionales (se pueden generar automáticamente o dejar nulos)
+    private String email; // Se genera automáticamente desde username si no se proporciona
+    private String numeroDocumento; // Opcional para usuarios LDAP
+    private Long idTipoDocumento; // Opcional, se asigna tipo por defecto si no se proporciona
+    private String telefono;
+    private String direccion;
+    private Long idMunicipio;
+    private Long idEmpresa;
 }

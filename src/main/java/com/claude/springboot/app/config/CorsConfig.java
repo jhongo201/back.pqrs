@@ -19,6 +19,7 @@ public class CorsConfig {
         
         // Orígenes permitidos
         config.addAllowedOrigin("http://localhost:4200"); // Angular por defecto
+        config.addAllowedOrigin("http://mst.mintrabajo.gov.co"); // Frontend de producción
         // Agregar otros orígenes según necesites
         // config.addAllowedOrigin("https://tu-dominio-produccion.com");
         
