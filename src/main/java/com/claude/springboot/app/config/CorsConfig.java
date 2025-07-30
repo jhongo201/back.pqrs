@@ -20,6 +20,15 @@ public class CorsConfig {
         // Orígenes permitidos
         config.addAllowedOrigin("http://localhost:4200"); // Angular por defecto
         config.addAllowedOrigin("http://mst.mintrabajo.gov.co"); // Frontend de producción
+        config.addAllowedOrigin("https://mst.mintrabajo.gov.co"); // Frontend de producción
+        
+        // IPs del servidor para acceso directo
+        config.addAllowedOrigin("http://10.1.0.20:8080"); // IP privada
+        config.addAllowedOrigin("http://20.110.161.158:8080"); // IP pública
+        config.addAllowedOrigin("https://20.110.161.158:8080"); // IP pública HTTPS
+        config.addAllowedOrigin("http://mst.mintrabajo.gov.co:8080"); // Dominio HTTP
+        config.addAllowedOrigin("https://mst.mintrabajo.gov.co:8080"); // Dominio HTTPS
+        
         // Agregar otros orígenes según necesites
         // config.addAllowedOrigin("https://tu-dominio-produccion.com");
         
