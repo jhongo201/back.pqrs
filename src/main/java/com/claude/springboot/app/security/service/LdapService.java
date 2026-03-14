@@ -28,6 +28,9 @@ public class LdapService {
     @Value("${ad.domain}")
     private String adDomain;
     
+    @Value("${ad.timeout:5000}")
+    private String adTimeout;
+    
     @Value("${ad.searchBase:}")
     private String searchBase;
     
@@ -60,14 +63,15 @@ public class LdapService {
             log.info("Iniciando autenticación directa para usuario: [{}]", username);
             log.info("URL LDAP: {}", adUrl);
             log.info("Dominio AD: {}", adDomain);
+            log.info("Timeout LDAP (ms): {}", adTimeout);
             
             Hashtable<String, String> env = new Hashtable<>();
             env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
             env.put(Context.PROVIDER_URL, adUrl);
             env.put(Context.SECURITY_AUTHENTICATION, "simple");
             env.put(Context.REFERRAL, "follow");
-            env.put("com.sun.jndi.ldap.connect.timeout", "5000");
-            env.put("com.sun.jndi.ldap.read.timeout", "5000");
+            env.put("com.sun.jndi.ldap.connect.timeout", adTimeout);
+            env.put("com.sun.jndi.ldap.read.timeout", adTimeout);
             
             String userDn = username.contains("@") ? username : username + "@" + adDomain;
             log.info("UserDn construido: [{}]", userDn);
@@ -118,6 +122,7 @@ public class LdapService {
             log.info("Iniciando autenticación con Service Account para usuario: [{}]", username);
             log.info("URL LDAP: {}", adUrl);
             log.info("Service Account: [{}]", serviceAccountUsername);
+            log.info("Timeout LDAP (ms): {}", adTimeout);
             
             // Validar que tenemos las credenciales del Service Account
             if (serviceAccountUsername == null || serviceAccountUsername.trim().isEmpty() ||
@@ -132,8 +137,8 @@ public class LdapService {
             env.put(Context.PROVIDER_URL, adUrl);
             env.put(Context.SECURITY_AUTHENTICATION, "simple");
             env.put(Context.REFERRAL, "follow");
-            env.put("com.sun.jndi.ldap.connect.timeout", "5000");
-            env.put("com.sun.jndi.ldap.read.timeout", "5000");
+            env.put("com.sun.jndi.ldap.connect.timeout", adTimeout);
+            env.put("com.sun.jndi.ldap.read.timeout", adTimeout);
             
             // Usar credenciales del Service Account para conectarse
             env.put(Context.SECURITY_PRINCIPAL, serviceAccountUsername);

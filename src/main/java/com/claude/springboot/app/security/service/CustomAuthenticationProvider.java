@@ -11,12 +11,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.claude.springboot.app.security.entities.Rol;
 import com.claude.springboot.app.security.entities.Usuario;
-import com.claude.springboot.app.security.repositories.RolRepository;
 import com.claude.springboot.app.security.repositories.UsuarioRepository;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -28,7 +25,6 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     private final PasswordEncoder passwordEncoder;
     private final LdapService ldapService;
     private final UsuarioRepository usuarioRepository;
-    private final RolRepository rolRepository;
 
     @Override
     public Authentication authenticate(Authentication authentication) {
@@ -73,8 +69,21 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
                     // Actualizar username si es necesario para consistencia
                     if (!usuario.getUsername().equals(normalizedUsername)) {
                         log.info("Actualizando username de {} a {}", usuario.getUsername(), normalizedUsername);
-                        usuario.setUsername(normalizedUsername);
-                        usuario = usuarioRepository.save(usuario);
+                        Optional<Usuario> usuarioConUsernameNormalizado = usuarioRepository.findByUsername(normalizedUsername);
+                        if (usuarioConUsernameNormalizado.isPresent()
+                                && !usuarioConUsernameNormalizado.get().getIdUsuario().equals(usuario.getIdUsuario())) {
+                            log.warn("Ya existe otro usuario con username normalizado: [{}] (ID: {}). Se usará ese registro para autenticar.",
+                                    normalizedUsername, usuarioConUsernameNormalizado.get().getIdUsuario());
+                            usuario = usuarioConUsernameNormalizado.get();
+                        } else {
+                            try {
+                                usuario.setUsername(normalizedUsername);
+                                usuario = usuarioRepository.save(usuario);
+                            } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                                log.warn("No fue posible actualizar username a [{}] por restricción de integridad. Se continuará autenticación sin actualizar. Detalle: {}",
+                                        normalizedUsername, e.getMessage());
+                            }
+                        }
                     }
                     
                     return createAuthenticationToken(usuario);
@@ -82,20 +91,8 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
                     log.warn("Autenticación LDAP falló para usuario existente: {}", normalizedUsername);
                 }
             } else {
-                log.info("Usuario no encontrado en BD, intentando crear desde LDAP...");
-                // Usuario no existe, intentar LDAP y crear si es exitoso
-                boolean ldapAuth = ldapService.authenticate(normalizedUsername, password);
-                log.info("Resultado autenticación LDAP para nuevo usuario: {}", ldapAuth);
-                
-                if (ldapAuth) {
-                    log.info("Autenticación LDAP exitosa para nuevo usuario: {}", normalizedUsername);
-                    
-                    // Crear usuario local
-                    Usuario nuevoUsuario = createLocalUserFromLdap(normalizedUsername);
-                    return createAuthenticationToken(nuevoUsuario);
-                } else {
-                    log.warn("Autenticación LDAP falló para nuevo usuario: {}", normalizedUsername);
-                }
+                log.warn("Usuario no encontrado en BD: [{}]. No se permite autocreación para usuarios LDAP.", normalizedUsername);
+                throw new BadCredentialsException("Usuario no registrado");
             }
         } catch (Exception e) {
             log.error("Error en proceso de autenticación para usuario [{}]: {}", username, e.getMessage(), e);
@@ -178,25 +175,6 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         return Optional.empty();
     }
     
-    /**
-     * Crea usuario local desde LDAP sin almacenar contraseña
-     */
-    private Usuario createLocalUserFromLdap(String normalizedUsername) {
-        log.info("Creando nuevo usuario local desde LDAP: {}", normalizedUsername);
-        
-        Usuario usuario = new Usuario();
-        usuario.setUsername(normalizedUsername);
-        usuario.setEstado(true);
-        usuario.setFechaCreacion(LocalDateTime.now());
-        usuario.setPassword(""); // Usuario LDAP, cadena vacía (BD no permite null)
-        
-        Rol rolDefault = rolRepository.findByNombre("USUARIO")
-            .orElseThrow(() -> new RuntimeException("Rol USUARIO no encontrado"));
-        usuario.setRol(rolDefault);
-        
-        return usuarioRepository.save(usuario);
-    }
-
     @Override
     public boolean supports(Class<?> authentication) {
         return authentication.equals(UsernamePasswordAuthenticationToken.class);
